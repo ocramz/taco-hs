@@ -1,6 +1,6 @@
 # taco
 
-This is a Haskell implementation of the Tensor Algebra COmpiler (`taco`) [1]
+Haskell implementation of the Tensor Algebra COmpiler (`taco`) [1]
 
 
 ## References
