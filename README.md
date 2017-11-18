@@ -1,2 +1,3 @@
-# taco-hs
-Haskell port of the Tensor Algebra COmpiler
+# taco
+
+add description of taco here
