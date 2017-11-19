@@ -2,7 +2,7 @@ module Data.Tensor where
 
 import qualified Data.Vector.Unboxed as V
 
-import Data.Word (Word32, Word64)
+-- import Data.Word (Word32, Word64)
 
 
 
@@ -44,20 +44,6 @@ eval (a :+: b) = eval a + eval b
 eval (a :*: b) = eval a * eval b
 
 
--- | "AND"
-conjunction :: (t1 -> t -> a) -> Maybe t1 -> Maybe t -> Maybe a
-conjunction f a b = case (a, b) of
-  (Just x, Just y)  -> Just $ f x y
-  _                 -> Nothing
-
--- | "OR"
-disjunction :: (t -> t -> t) -> Maybe t -> Maybe t -> Maybe t
-disjunction f a b = case (a, b) of
-  (Nothing, Nothing) -> Nothing
-  (Just x,  Nothing) -> Just x
-  (Nothing, Just y)  -> Just y
-  (Just x, Just y)   -> Just $ f x y
-  
 
 
 
@@ -71,7 +57,7 @@ spAdd = go where
                         LT -> (i, x)     : go xs yv
                         GT -> (j, y)     : go xv ys
 
--- | sparse vector /multiplication/ as 2-way merge
+-- | sparse vector /component-wise multiplication/ as 2-way merge
 spMul :: (Num a, Ord i) => [(i, a)] -> [(i, a)] -> [(i, a)]
 spMul = go where
   go [] _  = []
@@ -80,15 +66,30 @@ spMul = go where
     case compare i j of EQ -> (i, x * y) : go xs ys
                         LT -> go xs yv
                         GT -> go xv ys
-
-{-
-
-(0,0) (1,2) -> _
-(2,3) (2,4) -> (2,12)
-(5,1) (3,2) -> _
-
--}
                         
 
+v0, v1 :: [(Int, Int)]
 v0 = [(0, 1), (2, 2), (5, 1)]
 v1 = [(0, 2), (1, 3), (2, 3), (4, 1)]
+
+
+
+-- | "AND"
+conjunction :: (a -> b -> c) -> Maybe a -> Maybe b -> Maybe c
+conjunction f a b = case (a, b) of
+  (Just x, Just y)  -> Just $ f x y
+  _                 -> Nothing
+
+-- | "OR"
+disjunction :: (t -> t -> t) -> Maybe t -> Maybe t -> Maybe t
+disjunction f a b = case (a, b) of
+  (Nothing, Nothing) -> Nothing
+  (Just x,  Nothing) -> Just x
+  (Nothing, Just y)  -> Just y
+  (Just x, Just y)   -> Just $ f x y
+
+sumMaybe :: Num a => Maybe a -> Maybe a -> Maybe a  
+sumMaybe = disjunction (+)
+
+prodMaybe :: Num a => Maybe a -> Maybe a -> Maybe a  
+prodMaybe = conjunction (*)
