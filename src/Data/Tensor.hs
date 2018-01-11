@@ -58,6 +58,14 @@ internally, tensor data is stored in /dense/ vectors
 -}
 
 
+-- data Ops a = Reduce Int a a deriving (Eq, Show)
+
+
+
+
+
+
+
 -- reduce imode mata matb 
 
 
