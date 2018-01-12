@@ -1,31 +1,28 @@
 {-# language MultiParamTypeClasses, TypeFamilies, FlexibleContexts #-}
 module Data.TensorTest where
 
+import Data.List (splitAt, unfoldr)
+
 import qualified Data.Vector.Unboxed as V
 import Data.Tensor
 
 
 
 
-
-
+-- | tensor elements may be indexed
 class Ord (Ix a) => Elem a where
   type Ix a :: *
   type Ev a :: *
-  index :: a -> Ix a     
-  elemVal :: a -> Ev a
+  proj :: a -> (Ix a, Ev a)
   prod :: Ix a -> Ev a -> a
 
-ixEl :: Elem a => a -> (Ix a, Ev a)
-ixEl x = (index x, elemVal x)  
 
 data E1 a = E1 Int a deriving Show
 
 instance Elem (E1 a) where
   type Ix (E1 a) = Int
   type Ev (E1 a) = a
-  index (E1 i _) = i
-  elemVal (E1 _ x) = x
+  proj (E1 i x) = (i, x)
   prod i x = E1 i x
 
 data E2 a = E2 Int Int a deriving Show
@@ -33,9 +30,45 @@ data E2 a = E2 Int Int a deriving Show
 instance Elem (E2 a) where
   type Ix (E2 a) = (Int, Int)
   type Ev (E2 a) = a
-  index (E2 i j _) = (i, j)
-  elemVal (E2 _ _ x) = x
+  proj (E2 i j x) = ((i, j), x)
   prod (i, j) x = E2 i j x
+
+
+
+-- chunk sparse lists according to element index
+
+-- chunkBy q ll = go ll []
+--   where
+--     go _ acc = acc
+--     go (e:es) acc
+--       | q e       = go es (e : acc)
+--       -- | otherwise =
+
+chunks :: Int -> [a] -> [[a]]
+chunks _ [] = []
+chunks n ll = h : chunks n t where
+  (h, t) = splitAt n ll
+
+chunksWhile :: (a -> Bool) -> [a] -> [[a]]
+chunksWhile _ [] = []
+chunksWhile q ll = h : chunksWhile q t where
+  (h, t) = (takeWhile q ll, dropWhile q ll)
+
+
+chunksWhile' q = unfoldr genf where
+  genf ll =
+    if null h
+      then Nothing
+      else Just (h, drop (length h) ll)
+    where h = takeWhile q ll 
+      
+    -- let h = takeWhile q ll
+    -- in 
+  -- h = takeWhile q ll 
+  -- genf ll | null h = Nothing
+  --         | otherwise = Just
+
+
 
 
 spUnion' :: Elem a => (Ev a -> Ev a -> Ev a) -> [a] -> [a] -> [a]
@@ -44,15 +77,13 @@ spUnion' ff = go where
   go x [] = x
   go xv@(elx:xs) yv@(ely:ys) =
     let
-      (ix, elvx) = ixEl elx
-      (iy, elvy) = ixEl ely
+      (ix, elvx) = proj elx
+      (iy, elvy) = proj ely
     in 
       case compare ix iy of
         EQ -> (prod ix (ff elvx elvy)) : go xs ys
-        LT -> prod ix elvx : go xs yv
-        GT -> prod iy elvy : go xv ys
-      
-
+        LT -> prod ix elvx             : go xs yv
+        GT -> prod iy elvy             : go xv ys
         
 
 
