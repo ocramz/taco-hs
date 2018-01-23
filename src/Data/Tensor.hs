@@ -76,7 +76,8 @@ data Expr a where
 -- eval (Const x) = x
 -- eval (a :+: b) = eval a + eval b
 -- eval (a :*: b) = eval a * eval b
-=======
+
+
 {- | taco compiles a tensor expression (e.g. C = A_{ijk}B_{k} ) into a series of nested loops.
 
 dimensions : can be either dense or sparse
