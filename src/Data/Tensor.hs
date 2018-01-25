@@ -37,20 +37,20 @@ dims :: Tensor i a -> [Int]
 dims t = dim <$> tensorIxs t
 
 
-denseDim :: i -> DMD i
+denseDim :: Int -> DMD Int
 denseDim = DMD . Left . DMDDense
 
-sparseDim :: V.Vector i -> V.Vector i -> DMD i
-sparseDim pos ix = DMD $ Right $ DMDSparse pos ix
+sparseDim :: V.Vector i -> V.Vector i -> Int -> DMD i
+sparseDim pos ix d = DMD $ Right $ DMDSparse pos ix d
 
 
 
 rank :: Tensor i a -> Int
-rank (T _ ti) = length td
+rank = length . tensorIxs
 
 
 vectorFromListD :: V.Unbox a => [a] -> Tensor Int a
-vectorFromListD ll = T (V.fromList ll) [denseDim (length ll)]
+vectorFromListD ll = Tensor (V.fromList ll) [denseDim (length ll)]
 
 
 
@@ -61,6 +61,8 @@ data Expr a where
   (:+:) :: Expr a -> Expr a -> Expr a
   -- ^ Reduce over one or more indices
   (:*:) :: Expr a -> Expr a -> Expr a
+
+
 
 
 
@@ -113,7 +115,6 @@ internally, tensor data is stored in /dense/ vectors
 -- eval (a :*: b) = eval a * eval b
 
 
->>>>>>> 7e681b420883ba1a7b225a11c2a56c80ea13a51d
 
 -- --
 
