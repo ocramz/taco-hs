@@ -65,6 +65,49 @@ data Expr a where
 
 
 
+data E1 a =
+    K1 a
+  | Sum (E1 a) (E1 a)
+  | Inner (E1 a) (E1 a)
+  deriving (Eq, Show)
+
+-- eval e = case e of
+--   -- K1 x -> K2 x
+--   Sum x y -> ZipWith "+" (K2 x) (K2 y)
+
+eval1 :: E1 a -> E2 a
+eval1 e = case e of
+  K1 x -> K2 x
+  Sum x y -> ZipWith "+" (eval1 x) (eval1 y)
+  Inner x y -> Fold "+" "z" $ ZipWith "*" (eval1 x) (eval1 y)
+
+k :: a -> E1 a
+k = K1
+
+(.+.) :: E1 a -> E1 a -> E1 a
+(.+.) = Sum
+
+inner :: E1 a -> E1 a -> E1 a
+inner = Inner
+
+-- type Op1 = String
+type Op2 = String
+type Z = String
+
+data E2 a =
+    K2 a
+  | ZipWith Op2 (E2 a) (E2 a)
+  | Fold Op2 Z (E2 a)
+
+instance Show a => Show (E2 a) where
+  show (K2 x) = show x
+  show (ZipWith fs x y) = unwords ["(zipWith", fs, show x, show y, ")"]
+  show (Fold o2 z x) = unwords ["(fold", o2, z, show x, ")"]
+
+
+
+
+
 
 
 -- data Expr a =
