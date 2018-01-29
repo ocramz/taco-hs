@@ -1,10 +1,25 @@
 {-# language GADTs #-}
 {-# language DeriveFunctor #-}
+{-# language TypeOperators #-}
 module Data.Tensor where
 
 import qualified Data.Vector.Unboxed as V
 
 -- import Data.Word (Word32, Word64)
+
+
+data Z
+data sh :. e 
+
+data Shape sh where
+  Z :: Shape Z
+  (:.) :: Shape sh -> Int -> Shape (sh :. Int)
+
+dim :: Shape sh -> Int
+dim Z = 0
+dim (sh :. _) = dim sh + 1
+
+
 
 
 -- * Dimension metadata
@@ -25,31 +40,33 @@ data DMDSparse i = DMDSparse {
 newtype DMD i = DMD (Either (DMDDense i) (DMDSparse i)) deriving (Eq, Show)
 
 
--- | Tensor data entries are stored as one single array
+-- | The 'Tensor' type. Tensor data entries are stored as one single array
 data Tensor i a = Tensor {
     tensorData :: V.Vector a
   , tensorIxs :: [DMD i]
                          } deriving (Eq, Show)
 
-dim :: DMD i -> Int
-dim (DMD ed) = either dDim sDim ed
+-- dim :: DMD i -> Int
+-- dim (DMD ed) = either dDim sDim ed
 
-dims :: Tensor i a -> [Int]
-dims t = dim <$> tensorIxs t
+-- -- | Tensor dimension
+-- dims :: Tensor i a -> [Int]
+-- dims t = dim <$> tensorIxs t
 
 
 denseDim :: Int -> DMD Int
 denseDim = DMD . Left . DMDDense
 
--- sparseDim :: V.Vector i -> V.Vector i -> Int -> DMD i
--- sparseDim pos ix d = DMD $ Right $ DMDSparse pos ix d
+sparseDim :: Maybe (V.Vector i) -> V.Vector i -> Int -> DMD i
+sparseDim pos ix d = DMD $ Right $ DMDSparse pos ix d
 
 
-
+-- | Tensor rank (# of dimensions)
 rank :: Tensor i a -> Int
 rank = length . tensorIxs
 
 
+-- | Construction of dense vector 
 vectorFromListD :: V.Unbox a => [a] -> Tensor Int a
 vectorFromListD ll = Tensor (V.fromList ll) [denseDim (length ll)]
 
