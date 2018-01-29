@@ -6,7 +6,7 @@ module Data.TensorTest where
 import Data.List (splitAt, unfoldr)
 
 import qualified Data.Vector.Unboxed as V
-import Data.Tensor
+-- import Data.Tensor
 
 
 
@@ -75,7 +75,7 @@ chunksWhile _ [] = []
 chunksWhile q ll = h : chunksWhile q t where
   (h, t) = (takeWhile q ll, dropWhile q ll)
 
-
+chunksWhile' :: (a -> Bool) -> [a] -> [[a]]
 chunksWhile' q = unfoldr genf where
   genf ll =
     if null h
@@ -83,11 +83,6 @@ chunksWhile' q = unfoldr genf where
       else Just (h, drop (length h) ll)
     where h = takeWhile q ll 
       
-    -- let h = takeWhile q ll
-    -- in 
-  -- h = takeWhile q ll 
-  -- genf ll | null h = Nothing
-  --         | otherwise = Just
 
 
 

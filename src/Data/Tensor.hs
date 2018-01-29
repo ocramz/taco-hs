@@ -14,7 +14,7 @@ data DMDDense i = DMDDense { dDim :: Int } deriving (Eq, Show)
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
 data DMDSparse i = DMDSparse {
-      sCml :: V.Vector i
+      sCml :: Maybe (V.Vector i)
     , sIdx :: V.Vector i
     , sDim :: Int }
   deriving (Eq, Show)
@@ -41,8 +41,8 @@ dims t = dim <$> tensorIxs t
 denseDim :: Int -> DMD Int
 denseDim = DMD . Left . DMDDense
 
-sparseDim :: V.Vector i -> V.Vector i -> Int -> DMD i
-sparseDim pos ix d = DMD $ Right $ DMDSparse pos ix d
+-- sparseDim :: V.Vector i -> V.Vector i -> Int -> DMD i
+-- sparseDim pos ix d = DMD $ Right $ DMDSparse pos ix d
 
 
 
