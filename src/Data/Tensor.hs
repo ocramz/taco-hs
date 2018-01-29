@@ -11,14 +11,21 @@ import qualified Data.Vector.Unboxed as V
 data Z
 data sh :. e 
 
-data Shape sh where
+-- data Shape sh where
+--   Z :: Shape Z
+--   (:.) :: Shape sh -> Int -> Shape (sh :. Int)
+
+-- dim :: Shape sh -> Int
+-- dim Z = 0
+-- dim (sh :. _) = dim sh + 1
+
+data Shape i where
   Z :: Shape Z
-  (:.) :: Shape sh -> Int -> Shape (sh :. Int)
+  (:.) :: Shape i -> DMD i -> Shape (i :. DMD i)
 
-dim :: Shape sh -> Int
-dim Z = 0
-dim (sh :. _) = dim sh + 1
-
+dimSh :: Shape sh -> Int
+dimSh Z = 0
+dimSh (d :. c) = dimSh d + dim c
 
 
 
@@ -46,8 +53,8 @@ data Tensor i a = Tensor {
   , tensorIxs :: [DMD i]
                          } deriving (Eq, Show)
 
--- dim :: DMD i -> Int
--- dim (DMD ed) = either dDim sDim ed
+dim :: DMD i -> Int
+dim (DMD ed) = either dDim sDim ed
 
 -- -- | Tensor dimension
 -- dims :: Tensor i a -> [Int]
