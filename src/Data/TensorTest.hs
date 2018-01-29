@@ -1,10 +1,31 @@
 {-# language MultiParamTypeClasses, TypeFamilies, FlexibleContexts #-}
+{-# language TypeOperators #-}
+{-# language GADTs #-}
 module Data.TensorTest where
 
 import Data.List (splitAt, unfoldr)
 
 import qualified Data.Vector.Unboxed as V
 import Data.Tensor
+
+
+
+
+-- data Z
+-- data S n
+
+-- data Nat n where
+--   Z :: Z
+--   S ::
+
+
+
+-- data a :+: b
+
+data Exp a where
+  Lift :: (a -> b) -> Exp a -> Exp b
+
+
 
 
 

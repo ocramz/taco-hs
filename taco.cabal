@@ -2,7 +2,7 @@ name:                taco
 version:             0.1.0.0
 synopsis:            Haskell port of the Tensor Algebra COmpiler
 -- description:
-homepage:            https://github.com/ocramz/taco#readme
+homepage:            https://github.com/ocramz/taco-hs#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Marco Zocca
@@ -39,4 +39,4 @@ test-suite test
 
 source-repository head
   type:     git
-  location: https://github.com/ocramz/taco
+  location: https://github.com/ocramz/taco-hs
