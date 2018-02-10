@@ -7,45 +7,13 @@ import qualified Data.Vector.Unboxed as V
 
 -- import Data.Word (Word32, Word64)
 
-
-data Z
-data sh :. e 
-
--- data Shape sh where
---   Z :: Shape Z
---   (:.) :: Shape sh -> Int -> Shape (sh :. Int)
-
-data S2 sh where
-  Z :: S2 Z
-  (:.) :: S2 sh -> i -> S2 (sh :. i)
-
-
--- dim :: Shape sh -> Int
--- dim Z = 0
--- dim (sh :. _) = dim sh + 1
-
--- siz :: S2 (DMD i) -> Int
--- siz Z = 0
--- siz (sh :. i) = siz sh
+import Data.Dim
 
 
 
--- * Dimension metadata
 
--- | To define a /dense/ dimension we only need the dimensionality parameter
-newtype DMDDense i = DMDDense { dDim :: Int } deriving (Eq, Show)
 
--- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
-data DMDSparse i = DMDSparse {
-      sCml :: Maybe (V.Vector i)
-    , sIdx :: V.Vector i
-    , sDim :: Int }
-  deriving (Eq, Show)
 
--- | A tensor dimension can be either dense or sparse.
---
--- Example: the CSR format is /dense/ in the first index (rows) and /sparse/ in the second index (columns)
-newtype DMD i = DMD (Either (DMDDense i) (DMDSparse i)) deriving (Eq, Show)
 
 
 -- | The 'Tensor' type. Tensor data entries are stored as one single array
@@ -62,11 +30,11 @@ dim (DMD ed) = either dDim sDim ed
 -- dims t = dim <$> tensorIxs t
 
 
-denseDim :: Int -> DMD Int
-denseDim = DMD . Left . DMDDense
+-- denseDim :: Int -> DMD Int
+-- denseDim = DMD . Left . DMDDense
 
-sparseDim :: Maybe (V.Vector i) -> V.Vector i -> Int -> DMD i
-sparseDim pos ix d = DMD $ Right $ DMDSparse pos ix d
+-- sparseDim :: Maybe (V.Vector i) -> V.Vector i -> Int -> DMD i
+-- sparseDim pos ix d = DMD $ Right $ DMDSparse pos ix d
 
 
 -- | Tensor rank (# of dimensions)
@@ -74,9 +42,9 @@ rank :: Tensor i a -> Int
 rank = length . tensorIxs
 
 
--- | Construction of dense vector 
-vectorFromListD :: V.Unbox a => [a] -> Tensor Int a
-vectorFromListD ll = Tensor (V.fromList ll) [denseDim (length ll)]
+-- -- | Construction of dense vector 
+-- vectorFromListD :: V.Unbox a => [a] -> Tensor Int a
+-- vectorFromListD ll = Tensor (V.fromList ll) [denseDim (length ll)]
 
 
 
@@ -85,43 +53,9 @@ vectorFromListD ll = Tensor (V.fromList ll) [denseDim (length ll)]
 IN: Tensor reduction syntax (Einstein notation)
 
 OUT: stride program (how to read/write memory)
--}
 
 
-
-
-
--- * A possible abstract syntax
-
-data Expr a where
-  Const :: a -> Expr a 
-  -- ^ Sum two expressions
-  (:+:) :: Expr a -> Expr a -> Expr a
-  -- ^ Reduce over one or more indices
-  (:*:) :: Expr a -> Expr a -> Expr a
-
-
-
-
-
---
-
-
-
--- data Expr a =
---     Const a
---   | Expr a :+: Expr a
---   | Expr a :*: Expr a
---   deriving (Eq, Show)
-
-
--- eval :: Num t => Expr t -> t
--- eval (Const x) = x
--- eval (a :+: b) = eval a + eval b
--- eval (a :*: b) = eval a * eval b
-
-
-{- | taco compiles a tensor expression (e.g. C = A_{ijk}B_{k} ) into a series of nested loops.
+taco compiles a tensor expression (e.g. C = A_{ijk}B_{k} ) into a series of nested loops.
 
 dimensions : can be either dense or sparse
 
@@ -131,28 +65,21 @@ internally, tensor data is stored in /dense/ vectors
 
 -}
 
-data Expr1 a =
-    EConst a
-  | ESum (Expr1 a) (Expr1 a)
+
+
+
+-- * A possible abstract syntax
+
+data Expr a =
+    Const a
+  | Contract Int (Expr a) (Expr a)
+  -- | Expr a :+: Expr a
+  -- | Expr a :*: Expr a
+  -- | Expr a :-: Expr a
+  -- | Expr a :/: Expr a
   deriving (Eq, Show)
 
-
-
-
-
-
-
-
--- reduce imode mata matb 
-
-
--- data Expr a =
---     Const a
---   | Expr a :+: Expr a
---   | Expr a :*: Expr a
---   deriving (Eq, Show)
-
-
+-- -- | trivial recursive evaluation function
 -- eval :: Num t => Expr t -> t
 -- eval (Const x) = x
 -- eval (a :+: b) = eval a + eval b
@@ -160,8 +87,17 @@ data Expr1 a =
 
 
 
--- --
 
+-- | GADT syntax
+
+-- data Expr a where
+--   Const :: a -> Expr a 
+--   -- ^ Sum (elementwise) two expressions
+--   (:+:) :: Expr a -> Expr a -> Expr a
+--   -- ^ Multiply (elementwise) two expressions
+--   (:*:) :: Expr a -> Expr a -> Expr a
+--   -- ^ Subtract (elementwise) two expressions
+--   (:-:) :: Expr a -> Expr a -> Expr a
 
 
 
