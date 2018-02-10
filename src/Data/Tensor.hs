@@ -15,24 +15,25 @@ data sh :. e
 --   Z :: Shape Z
 --   (:.) :: Shape sh -> Int -> Shape (sh :. Int)
 
+data S2 sh where
+  Z :: S2 Z
+  (:.) :: S2 sh -> i -> S2 (sh :. i)
+
+
 -- dim :: Shape sh -> Int
 -- dim Z = 0
 -- dim (sh :. _) = dim sh + 1
 
-data Shape i where
-  Z :: Shape Z
-  (:.) :: Shape i -> DMD i -> Shape (i :. DMD i)
-
-dimSh :: Shape sh -> Int
-dimSh Z = 0
-dimSh (d :. c) = dimSh d + dim c
+-- siz :: S2 (DMD i) -> Int
+-- siz Z = 0
+-- siz (sh :. i) = siz sh
 
 
 
 -- * Dimension metadata
 
 -- | To define a /dense/ dimension we only need the dimensionality parameter
-data DMDDense i = DMDDense { dDim :: Int } deriving (Eq, Show)
+newtype DMDDense i = DMDDense { dDim :: Int } deriving (Eq, Show)
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
 data DMDSparse i = DMDSparse {
@@ -130,8 +131,11 @@ internally, tensor data is stored in /dense/ vectors
 
 -}
 
+data Expr1 a =
+    EConst a
+  | ESum (Expr1 a) (Expr1 a)
+  deriving (Eq, Show)
 
--- data Ops a = Reduce Int a a deriving (Eq, Show)
 
 
 
