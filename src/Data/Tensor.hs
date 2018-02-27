@@ -17,6 +17,9 @@ data Tensor i a = Tensor {
   , tensorShape :: Sh i
                          } deriving (Eq, Show)
 
+nnz :: V.Unbox a => Tensor t a -> Int
+nnz (Tensor td _) = V.length td
+
 -- dim :: DMD i -> Int
 -- dim (DMD ed) = either dDim sDim ed
 

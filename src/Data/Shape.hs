@@ -23,15 +23,19 @@ data Sh sh where
   -- ^ Constructor for a sparse dimension
   S :: Sh sh -> Dim.S Int -> Sh (sh :. Int)
 
+-- | rank
 rank :: Sh sh -> Int
 rank Z = 0
 rank (D sh _) = 1 + rank sh
 rank (S sh _) = 1 + rank sh
 
+-- | dimensions
 dim :: Sh sh -> [Int]
 dim Z = []
 dim (D sh (Dim.D m)) = m : dim sh
 dim (S sh (Dim.S _ _ m)) = m : dim sh
+
+
 
 
 instance Show (Sh sh) where
