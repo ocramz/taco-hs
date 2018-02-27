@@ -7,18 +7,18 @@ import qualified Data.Vector.Unboxed as V
 
 -- import Data.Word (Word32, Word64)
 
+import Data.Shape
 import Data.Dim
-
 
 
 -- | The 'Tensor' type. Tensor data entries are stored as one single array
 data Tensor i a = Tensor {
     tensorData :: V.Vector a
-  , tensorIxs :: [DMD i]
+  , tensorShape :: Sh i
                          } deriving (Eq, Show)
 
-dim :: DMD i -> Int
-dim (DMD ed) = either dDim sDim ed
+-- dim :: DMD i -> Int
+-- dim (DMD ed) = either dDim sDim ed
 
 -- -- | Tensor dimension
 -- dims :: Tensor i a -> [Int]
@@ -32,9 +32,9 @@ dim (DMD ed) = either dDim sDim ed
 -- sparseDim pos ix d = DMD $ Right $ DMDSparse pos ix d
 
 
--- | Tensor rank (# of dimensions)
-rank :: Tensor i a -> Int
-rank = length . tensorIxs
+-- -- | Tensor rank (# of dimensions)
+-- rank :: Tensor i a -> Int
+-- rank = length . tensorIxs
 
 
 -- -- | Construction of dense vector 

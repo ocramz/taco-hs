@@ -2,7 +2,7 @@
 module Data.Dim where
 
 import Data.Vector.Unboxed as V
--- import Data.Shape
+
 
 -- * Dimension metadata
 
