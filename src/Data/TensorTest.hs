@@ -9,8 +9,6 @@ import qualified Data.Vector.Unboxed as V
 -- import Data.Tensor
 
 
-
-
 -- data Z
 -- data S n
 

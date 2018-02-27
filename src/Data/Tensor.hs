@@ -11,11 +11,6 @@ import Data.Dim
 
 
 
-
-
-
-
-
 -- | The 'Tensor' type. Tensor data entries are stored as one single array
 data Tensor i a = Tensor {
     tensorData :: V.Vector a
