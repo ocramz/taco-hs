@@ -19,6 +19,7 @@ data sh :. e
 -- dim Z = 0
 -- dim (sh :. _) = dim sh + 1
 
+
 data Shape i where
   Z :: Shape Z
   (:.) :: Shape i -> DMD i -> Shape (i :. DMD i)
