@@ -1,4 +1,4 @@
-{-# language GADTs #-}
+{-# language GADTs, RankNTypes #-}
 module Data.Tensor.Compiler.PHOAS where
 
 
@@ -9,12 +9,30 @@ data Phoas a where
   Let :: Phoas a -> (a -> Phoas a) -> Phoas a
   Let2 :: Phoas a -> Phoas a -> (a -> a -> Phoas a) -> Phoas a
 
+instance Show a => Show (Phoas a) where
+  show e = case e of
+    Var x -> show x
+    -- Let e f -> unwords
+
 -- | Semantic function for evaluation
 eval :: Phoas t -> t
 eval expr = case expr of
   Var x -> x
   Let e f -> eval (f (eval e))
   Let2 e0 e1 f -> eval (f e0' e1') where {e0' = eval e0; e1' = eval e1}
+
+
+
+type ClosedExpr = forall a . Phoas a
+
+pprint :: ClosedExpr -> String
+pprint expr = go expr 0
+  where
+    -- go :: Phoas String -> Int -> String
+    go (Var x) _ = x
+    go (Let e f) c = unwords ["(let", v, "=", go e (c+1), "in", go (f v) (c+1),")"]
+      where
+        v = "v" ++ show c
 
 -- | Helper functions  
 
@@ -38,7 +56,8 @@ plus a b = Let2 a b (lift2 (+))
 -- | Benchmark: `tree 50` should compute the answer instantly.
 --
 -- This proves that the PHOAS formulation preserves variable sharing
-treeE :: Integer -> Phoas Integer
+-- treeE :: Integer -> Phoas Integer
+treeE :: (Num a, Num t, Eq t) => t -> Phoas a
 treeE 0 = Var 1
 treeE n = let_ (treeE (n - 1)) (\s -> s `plus` s)
 
