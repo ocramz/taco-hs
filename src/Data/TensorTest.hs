@@ -8,9 +8,13 @@ import Data.List (splitAt, unfoldr)
 import qualified Data.Vector.Unboxed as V
 -- import Data.Tensor
 
+import qualified Data.Shape as Shape (dim, rank)
+import Data.Shape (Sh(..), 
+                   Z,
+                   D1, D2, CSR, COO, mkD2, mkCSR, mkCOO) 
+import qualified Data.Dim as Dim
 
-data Exp a where
-  Lift :: (a -> b) -> Exp a -> Exp b
+
 
 
 -- | tensor elements may be indexed

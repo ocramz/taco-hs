@@ -102,18 +102,69 @@ dim (T sh _) = fromIntegral <$> Shape.dim sh
 
 -- * A possible abstract syntax
 
-data Index i where
-  I1 :: i -> Index i
-  I2 :: i -> i -> Index (i, i)
+-- data Index i where
+--   I1 :: i -> Index i
+--   I2 :: i -> i -> Index (i, i)
 
 -- | Expressions with tensor operands, e.g. "contract A_{ijk}B_{k} over the third index"
 
 -- | User-facing grammar:
-data Expr a where
-  Const :: a -> Expr a
-  Contract :: Index i -> Expr a -> Expr a -> Expr a
---   -- (:*:) :: Expr a -> Expr a -> Expr a
---   -- (:+:) :: Expr a -> Expr a -> Expr a
+-- data Expr a where
+--   Const :: a -> Expr a
+--   Contract :: i -> Expr a -> Expr a -> Expr a
+-- --   -- (:*:) :: Expr a -> Expr a -> Expr a
+-- --   -- (:+:) :: Expr a -> Expr a -> Expr a
+
+
+
+
+data Phoas a where
+  Const :: a -> Phoas a
+  -- Var :: Int -> Phoas Int
+  Let :: Phoas a -> (a -> Phoas a) -> Phoas a
+  Let2 :: Phoas a -> Phoas a -> (a -> a -> Phoas a) -> Phoas a
+  -- Let :: (Phoas a -> Phoas b) -> Phoas (a -> b)
+  -- App :: Phoas (a -> b) -> Phoas a -> Phoas b
+
+eval expr = case expr of
+  -- Var i -> i
+  Const x -> x
+  Let e f -> eval (f (eval e))
+  Let2 e0 e1 f -> eval (f e0' e1') where {e0' = eval e0; e1' = eval e1}
+
+lift1 :: (a -> b) -> a -> Phoas b
+lift1 f a = Const (f a)
+
+lift2 :: (a -> b -> c) -> a -> b -> Phoas c
+lift2 f a b = Const (f a b)
+
+plus :: Num a => a -> a -> Phoas a
+plus = lift2 (+)
+
+
+
+et0 = Const 1 --  `plus` Const 3
+
+
+-- data Phoas a =
+--     Lit Int
+--   -- | Lift1 (a -> a) (a -> Phoas a)
+--   -- | Add (Phoas a) (Phoas a)
+--   | Let (Phoas a) (a -> Phoas a)
+--   | Let2 (Phoas a) (Phoas a) (a -> a -> Phoas a)
+--   | Var a
+
+-- evalPhoas expr = case expr of
+--   Var x -> x
+--   Lit i -> i
+--   -- Add e0 e1 -> evalPhoas e0 + evalPhoas e1
+--   Let e f -> evalPhoas $ f e' where e' = evalPhoas e
+--   Let2 e0 e1 f -> evalPhoas $ f e0' e1' where
+--     e0' = evalPhoas e0
+--     e1' = evalPhoas e1
+
+
+-- contract ixs (T sh)
 
 -- eval (Const x) = x
 -- eval (Contract ixs a b) = undefined
