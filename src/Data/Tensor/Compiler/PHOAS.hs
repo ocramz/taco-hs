@@ -2,13 +2,14 @@
 module Data.Tensor.Compiler.PHOAS where
 
 
--- * PHOAS 
+-- * PHOAS, after B. Oliveira, A. Loeh, `Abstract Syntax Graphs for Domain Specific Languages`  
 
 data Phoas a where
   Var :: a -> Phoas a
   Let :: Phoas a -> (a -> Phoas a) -> Phoas a
   Let2 :: Phoas a -> Phoas a -> (a -> a -> Phoas a) -> Phoas a
 
+-- | Semantic function for evaluation
 eval :: Phoas t -> t
 eval expr = case expr of
   Var x -> x
@@ -34,7 +35,9 @@ plus a b = Let2 a b (lift2 (+))
 
 
 
--- | Benchmark: `tree 50` should compute the answer instantly
+-- | Benchmark: `tree 50` should compute the answer instantly.
+--
+-- This proves that the PHOAS formulation preserves variable sharing
 treeE :: Integer -> Phoas Integer
 treeE 0 = Var 1
 treeE n = let_ (treeE (n - 1)) (\s -> s `plus` s)

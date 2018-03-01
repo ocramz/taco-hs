@@ -16,8 +16,9 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   ghc-options:         -Wall
-  exposed-modules:     Data.Tensor
-  other-modules:       Data.Shape
+  exposed-modules:     Data.Tensor.Compiler
+  other-modules:       Data.Tensor
+                       Data.Shape
                        Data.Dim
                        Data.Tensor.Compiler.PHOAS
   build-depends:       base >= 4.7 && < 5
