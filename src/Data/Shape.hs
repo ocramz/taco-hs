@@ -3,7 +3,7 @@
 module Data.Shape where
 
 import Data.Monoid
-import Data.Int (Int64)
+import Data.Int (Int64, Int32)
 -- import GHC.TypeLits
 -- import GHC.Natural
 
@@ -12,55 +12,61 @@ import qualified Data.Vector.Unboxed as VU
 import qualified Data.Dim as Dim
 
 
-
 data Z
 data sh :# e -- dense
 data sh :. e -- sparse
 
-
-data Sh sh i where
-  Z :: VU.Unbox i => Sh Z i
+-- | A statically-typed tensor shape parameter that supports both sparse and dense dimensions
+data Sh sh where 
+  Z :: Sh Z
   -- ^ Constructor for a dense dimension  
-  D :: VU.Unbox i => Sh sh i -> Dim.D i -> Sh (sh :# i) i
+  D :: Sh sh -> Dim.D Int32 -> Sh (sh :# Int32)
   -- ^ Constructor for a sparse dimension 
-  S :: VU.Unbox i => Sh sh i -> Dim.S i -> Sh (sh :. i) i
+  S :: Sh sh -> Dim.S Int32 -> Sh (sh :. Int32) 
+
+type Dense1 = Z :# Int32
+type Dense2 = (Z :# Int32) :# Int32
+type CSR = (Z :# Int32) :. Int32
+type COO = (Z :. Int32) :. Int32
 
 
-instance VU.Unbox i => Show (Sh sh i) where
+instance Show (Sh sh) where
   show Z = ""
   show (D sh (Dim.D m)) = unwords [show m, show sh]
   show (S sh (Dim.S _ ix n)) = showSparse ix n <> show sh where
     showSparse ix n = show (VU.length ix, n)
 
-instance (VU.Unbox i, Eq i) => Eq (Sh sh i) where
+instance Eq (Sh sh) where
   Z == Z = True
   (sh `D` d) == (sh2 `D` d2) = d == d2 && (sh == sh2)
   (sh `S` s) == (sh2 `S` s2) = s == s2 && (sh == sh2)
 
 -- | rank
-rank :: Sh sh i -> Int
+rank :: Sh sh -> Int
 rank Z = 0
 rank (D sh _) = 1 + rank sh
 rank (S sh _) = 1 + rank sh
 
 -- | dimensions
-dim :: Sh sh i -> [Int]
+dim :: Sh sh -> [Integer]
 dim Z = []
-dim (D sh (Dim.D m)) = m : dim sh
-dim (S sh (Dim.S _ _ m)) = m : dim sh
+dim (D sh (Dim.D m)) = toInteger m : dim sh
+dim (S sh (Dim.S _ _ m)) = toInteger m : dim sh
 
 
--- newtype D2 i = D2 (Shape ((Z :. i) :. i))
+ 
 
   
 -- | Shape of a dense rank-2 tensor (a matrix)
--- mkD2 :: Int -> Int -> Sh ((Z :# i1) :# i)
+mkD2 :: Int32 -> Int32 -> Sh ((Z :# Int32) :# Int32)
 mkD2 m n = (Z `D` Dim.D m) `D` Dim.D n
 
--- | Shape of a rank-2 CSR matrix (dense in the first index, sparse in the second)
--- mkCSR :: Int -> VU.Vector i -> VU.Vector i -> Int -> Sh ((Z :# i) :. i)
-mkCSR m icml iidx n = (Z `D` Dim.D m) `S` Dim.S (Just icml) iidx n
+-- | Shape of a rank-2 CSR tensor (dense in the first index, sparse in the second)
+mkCSR :: Int32 -> Int32 -> VU.Vector Int32 -> VU.Vector Int32 -> Sh CSR
+mkCSR m n icml iidx = (Z `D` Dim.D m) `S` Dim.S (Just icml) iidx n
 
+-- | Shape of a rank-2 COO tensor (sparse in both indices)
+mkCOO :: Int32 -> Int32 -> VU.Vector Int32 -> VU.Vector Int32 -> Sh COO
 mkCOO m n vi vj = (Z `S` Dim.S Nothing vi m) `S` Dim.S Nothing vj n
 
 

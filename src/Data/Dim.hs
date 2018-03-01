@@ -7,14 +7,14 @@ import Data.Vector.Unboxed as V
 -- * Dimension metadata
 
 -- | To define a /dense/ dimension we only need the dimensionality parameter
-newtype D i = D { dDim :: Int } deriving (Eq, Show)
+newtype D i = D { dDim :: i } deriving (Eq, Show)
 
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
 data S i = S {
       sCml :: Maybe (V.Vector i)
     , sIdx :: V.Vector i
-    , sDim :: Int }
+    , sDim :: i }
   deriving (Eq, Show)
 
 -- | A tensor dimension can be either dense or sparse.
