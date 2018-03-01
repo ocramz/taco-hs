@@ -2,7 +2,8 @@
 
 module Data.Shape where
 
-import Data.Monoid 
+import Data.Monoid
+import Data.Int (Int64)
 -- import GHC.TypeLits
 -- import GHC.Natural
 
@@ -16,49 +17,41 @@ data Z
 data sh :# e -- dense
 data sh :. e -- sparse
 
-data Sh sh where
-  Z :: Sh Z
+
+data Sh sh i where
+  Z :: VU.Unbox i => Sh Z i
   -- ^ Constructor for a dense dimension  
-  D :: Sh sh -> Dim.D Int -> Sh (sh :# Int)
-  -- ^ Constructor for a sparse dimension
-  S :: Sh sh -> Dim.S Int -> Sh (sh :. Int)
-
--- | rank
-rank :: Sh sh -> Int
-rank Z = 0
-rank (D sh _) = 1 + rank sh
-rank (S sh _) = 1 + rank sh
-
--- | dimensions
-dim :: Sh sh -> [Int]
-dim Z = []
-dim (D sh (Dim.D m)) = m : dim sh
-dim (S sh (Dim.S _ _ m)) = m : dim sh
+  D :: VU.Unbox i => Sh sh i -> Dim.D i -> Sh (sh :# i) i
+  -- ^ Constructor for a sparse dimension 
+  S :: VU.Unbox i => Sh sh i -> Dim.S i -> Sh (sh :. i) i
 
 
--- fromList Z = []
--- fromList (D sh (Dim.D m)) = 
-
-
-
-
--- fromList Z = []
--- fromList 
-
-
-instance Show (Sh sh) where
+instance VU.Unbox i => Show (Sh sh i) where
   show Z = ""
   show (D sh (Dim.D m)) = unwords [show m, show sh]
   show (S sh (Dim.S _ ix n)) = showSparse ix n <> show sh where
     showSparse ix n = show (VU.length ix, n)
 
-instance Eq (Sh sh) where
+instance (VU.Unbox i, Eq i) => Eq (Sh sh i) where
   Z == Z = True
   (sh `D` d) == (sh2 `D` d2) = d == d2 && (sh == sh2)
   (sh `S` s) == (sh2 `S` s2) = s == s2 && (sh == sh2)
 
+-- | rank
+rank :: Sh sh i -> Int
+rank Z = 0
+rank (D sh _) = 1 + rank sh
+rank (S sh _) = 1 + rank sh
+
+-- | dimensions
+dim :: Sh sh i -> [Int]
+dim Z = []
+dim (D sh (Dim.D m)) = m : dim sh
+dim (S sh (Dim.S _ _ m)) = m : dim sh
+
 
 -- newtype D2 i = D2 (Shape ((Z :. i) :. i))
+
   
 -- | Shape of a dense rank-2 tensor (a matrix)
 -- mkD2 :: Int -> Int -> Sh ((Z :# i1) :# i)
@@ -68,30 +61,13 @@ mkD2 m n = (Z `D` Dim.D m) `D` Dim.D n
 -- mkCSR :: Int -> VU.Vector i -> VU.Vector i -> Int -> Sh ((Z :# i) :. i)
 mkCSR m icml iidx n = (Z `D` Dim.D m) `S` Dim.S (Just icml) iidx n
 
-
--- data Z
--- data Sparse sh e
--- data Dense sh e
-
--- data Shape sh where
---   Z :: Shape Z
---   S :: Shape sh -> Dim.D i -> Shape (Sparse sh i)
---   D :: Shape sh -> Dim.S i -> Shape (Dense sh i)
-
-
--- data Z
--- data sh :. e
-
--- data Shape sh where
---   Z :: Shape Z
---   (:.) :: Shape sh -> i -> Shape (sh :. i)
-
--- dimz :: Shape sh -> Int
--- dimz Z = 0
--- dimz (sh :. _) = dimz sh + 1
+mkCOO m n vi vj = (Z `S` Dim.S Nothing vi m) `S` Dim.S Nothing vj n
 
 
 
+
+
+-- | Playground
 
 -- -- | An index of dimension zero
 -- data Z  = Z
