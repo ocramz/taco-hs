@@ -1,9 +1,11 @@
 {-# language GADTs #-}
 {-# language DeriveFunctor #-}
 {-# language TypeOperators #-}
+{-# language PackageImports #-}
 module Data.Tensor (
   -- * Tensor type
-  Tensor(..), shape, nnz,
+  Tensor(..),
+  shape, nnz, rank, dim, 
   -- * Shape type
   Sh(..),
   -- * Dimension types
@@ -15,9 +17,13 @@ import qualified Data.Vector as V
 -- import Data.Word (Word32, Word64)
 -- import Data.Int (Int32)
 
-import Data.Shape (Sh(..), dim, rank,
+import Control.Exception (Exception(..))
+import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM, MonadCatch(..), catch)
+
+import qualified Data.Shape as Shape (dim, rank)
+import Data.Shape (Sh(..), 
                    Z,
-                   D1, D2, CSR, COO, mkD2, mkCSR, mkCOO)
+                   D1, D2, CSR, COO, mkD2, mkCSR, mkCOO) 
 import qualified Data.Dim as Dim
 
 
@@ -82,6 +88,13 @@ shape (T sh _) = sh
 nnz :: Tensor i a -> Int
 nnz (T _ td) = V.length td
 
+-- | Tensor rank
+rank :: Tensor i a -> Int
+rank (T sh _) = Shape.rank sh
+
+-- | Tensor dimensions
+dim :: Tensor i a -> [Int]
+dim (T sh _) = fromIntegral <$> Shape.dim sh
 
 
 
@@ -89,20 +102,16 @@ nnz (T _ td) = V.length td
 
 -- * A possible abstract syntax
 
--- data Index i where
---   I1 :: i -> Index i
---   I2 :: i -> i -> Index (i, i)
+data Index i where
+  I1 :: i -> Index i
+  I2 :: i -> i -> Index (i, i)
 
--- -- | Expressions with tensor operands, e.g. "contract A_{ijk}B_{k} over the third index"
+-- | Expressions with tensor operands, e.g. "contract A_{ijk}B_{k} over the third index"
 
--- -- mkConstE = Const <$> mkT
-
--- data Expr a where
---   Const :: Tensor (Sh i) a -> Expr (Tensor (Sh i) a)
-
--- data Expr i a where
---   -- Const :: a -> Expr a
---   Contract :: Index i -> Expr (Sh i) a -> Expr (Sh i) a -> Expr (Sh i) a
+-- | User-facing grammar:
+data Expr a where
+  Const :: a -> Expr a
+  Contract :: Index i -> Expr a -> Expr a -> Expr a
 --   -- (:*:) :: Expr a -> Expr a -> Expr a
 --   -- (:+:) :: Expr a -> Expr a -> Expr a
 

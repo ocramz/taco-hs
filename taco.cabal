@@ -1,6 +1,6 @@
 name:                taco
-version:             0.1.0.0
-synopsis:            Haskell port of the Tensor Algebra COmpiler
+version:             0.2.0.0
+synopsis:            Tensor Algebra COmpiler
 description:         This library provides types and a compiler for tensor expressions.
 homepage:            https://github.com/ocramz/taco-hs#readme
 license:             BSD3
