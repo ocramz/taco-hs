@@ -138,12 +138,15 @@ lift1 f a = Const (f a)
 lift2 :: (a -> b -> c) -> a -> b -> Phoas c
 lift2 f a b = Const (f a b)
 
-plus :: Num a => a -> a -> Phoas a
-plus = lift2 (+)
+plus :: Num a => Phoas a -> Phoas a -> Phoas a
+plus a b = Let2 a b (lift2 (+))
+
+-- plus :: Num a => a -> a -> Phoas a
+-- plus = lift2 (+)
 
 
 
-et0 = Const 1 --  `plus` Const 3
+e0 = Const 1 --  `plus` Const 3
 
 
 -- data Phoas a =
