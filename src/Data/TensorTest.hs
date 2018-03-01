@@ -9,23 +9,8 @@ import qualified Data.Vector.Unboxed as V
 -- import Data.Tensor
 
 
--- data Z
--- data S n
-
--- data Nat n where
---   Z :: Z
---   S ::
-
-
-
--- data a :+: b
-
 data Exp a where
   Lift :: (a -> b) -> Exp a -> Exp b
-
-
-
-
 
 
 -- | tensor elements may be indexed
@@ -54,32 +39,7 @@ instance Elem (E2 a) where
 
 
 
--- chunk sparse lists according to element index
 
--- chunkBy q ll = go ll []
---   where
---     go _ acc = acc
---     go (e:es) acc
---       | q e       = go es (e : acc)
---       -- | otherwise =
-
-chunks :: Int -> [a] -> [[a]]
-chunks _ [] = []
-chunks n ll = h : chunks n t where
-  (h, t) = splitAt n ll
-
-chunksWhile :: (a -> Bool) -> [a] -> [[a]]
-chunksWhile _ [] = []
-chunksWhile q ll = h : chunksWhile q t where
-  (h, t) = (takeWhile q ll, dropWhile q ll)
-
-chunksWhile' :: (a -> Bool) -> [a] -> [[a]]
-chunksWhile' q = unfoldr genf where
-  genf ll =
-    if null h
-      then Nothing
-      else Just (h, drop (length h) ll)
-    where h = takeWhile q ll 
       
 
 
@@ -157,3 +117,32 @@ prodMaybe :: Num a => Maybe a -> Maybe a -> Maybe a
 prodMaybe = conjunction (*)
 
 
+
+
+
+-- chunk sparse lists according to element index
+
+-- chunkBy q ll = go ll []
+--   where
+--     go _ acc = acc
+--     go (e:es) acc
+--       | q e       = go es (e : acc)
+--       -- | otherwise =
+
+chunks :: Int -> [a] -> [[a]]
+chunks _ [] = []
+chunks n ll = h : chunks n t where
+  (h, t) = splitAt n ll
+
+chunksWhile :: (a -> Bool) -> [a] -> [[a]]
+chunksWhile _ [] = []
+chunksWhile q ll = h : chunksWhile q t where
+  (h, t) = (takeWhile q ll, dropWhile q ll)
+
+chunksWhile' :: (a -> Bool) -> [a] -> [[a]]
+chunksWhile' q = unfoldr genf where
+  genf ll =
+    if null h
+      then Nothing
+      else Just (h, drop (length h) ll)
+    where h = takeWhile q ll 

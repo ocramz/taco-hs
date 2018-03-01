@@ -54,7 +54,7 @@ dim (D sh (Dim.D m)) = toInteger m : dim sh
 dim (S sh (Dim.S _ _ m)) = toInteger m : dim sh
 
 
- 
+
 
   
 -- | Shape of a dense rank-2 tensor (a matrix)
