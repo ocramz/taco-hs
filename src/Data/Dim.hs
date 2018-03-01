@@ -7,11 +7,11 @@ import Data.Vector.Unboxed as V
 -- * Dimension metadata
 
 -- | To define a /dense/ dimension we only need the dimensionality parameter
-newtype D i = D { dDim :: i } deriving (Eq, Show)
+newtype Dd i = Dd { dDim :: i } deriving (Eq, Show)
 
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
-data S i = S {
+data Sd i = Sd {
       sCml :: Maybe (V.Vector i)
     , sIdx :: V.Vector i
     , sDim :: i }

@@ -2,6 +2,10 @@
 
 Haskell implementation of the Tensor Algebra COmpiler (`taco`) [1]
 
+## Experimental and not yet ready for general use
+
+
+
 
 ## References
 

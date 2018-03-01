@@ -1,17 +1,22 @@
 {-# language GADTs #-}
 {-# language DeriveFunctor #-}
 {-# language TypeOperators #-}
-module Data.Tensor where
+module Data.Tensor (
+  -- * Tensor type
+  Tensor(..), shape, nnz,
+  -- * Shape type
+  Sh(..),
+  -- * Dimension types
+  Dim.Dd(..), Dim.Sd(..)) where
 
 import qualified Data.Vector as V
-import qualified Data.Vector.Unboxed as VU
+-- import qualified Data.Vector.Unboxed as VU
 
 -- import Data.Word (Word32, Word64)
-import Data.Int (Int32)
+-- import Data.Int (Int32)
 
 import Data.Shape (Sh(..), dim, rank,
                    Z,
-                   -- * Some synonyms
                    D1, D2, CSR, COO, mkD2, mkCSR, mkCOO)
 import qualified Data.Dim as Dim
 
