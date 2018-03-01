@@ -118,6 +118,8 @@ dim (T sh _) = fromIntegral <$> Shape.dim sh
 
 
 
+-- * PHOAS 1
+
 data Phoas a where
   Const :: a -> Phoas a
   -- Var :: Int -> Phoas Int
@@ -133,20 +135,36 @@ eval expr = case expr of
   Let2 e0 e1 f -> eval (f e0' e1') where {e0' = eval e0; e1' = eval e1}
 
 lift1 :: (a -> b) -> a -> Phoas b
-lift1 f a = Const (f a)
+lift1 f = Const . f -- Lift1
 
 lift2 :: (a -> b -> c) -> a -> b -> Phoas c
-lift2 f a b = Const (f a b)
+lift2 f a b = Const (f a b) -- Lift2
 
 plus :: Num a => Phoas a -> Phoas a -> Phoas a
 plus a b = Let2 a b (lift2 (+))
 
--- plus :: Num a => a -> a -> Phoas a
--- plus = lift2 (+)
+
+-- -- * PHOAS 2
+
+-- data Phoas a where
+--   Const :: a -> Phoas a
+--   Lift1 :: (a -> b) -> Phoas (a -> b)
+--   Let :: Phoas a -> (Phoas a -> Phoas b) -> Phoas b
+--   Lambda :: (Phoas a -> Phoas b) -> Phoas (a -> b)
+--   App1 :: Phoas (a -> b) -> (Phoas a -> Phoas b)
+
+-- eval expr = case expr of
+--   -- Const x -> x
+--   Let e f -> f e
+
+-- -- lift1 :: (a -> b) -> a -> Phoas b
+-- -- lift1 f = Const . f
+
+-- -- lift2 :: (t2 -> t1 -> t) -> Phoas (t2 -> t1 -> t)
+-- -- lift2 f = Const $ \a b -> f a b 
 
 
-
-e0 = Const 1 --  `plus` Const 3
+-- -- 
 
 
 -- data Phoas a =
