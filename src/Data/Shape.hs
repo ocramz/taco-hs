@@ -24,8 +24,8 @@ data Sh sh where
   -- ^ Constructor for a sparse dimension 
   S :: Sh sh -> Dim.S Int32 -> Sh (sh :. Int32) 
 
-type Dense1 = Z :# Int32
-type Dense2 = (Z :# Int32) :# Int32
+type D1 = Z :# Int32
+type D2 = (Z :# Int32) :# Int32
 type CSR = (Z :# Int32) :. Int32
 type COO = (Z :. Int32) :. Int32
 
@@ -41,13 +41,13 @@ instance Eq (Sh sh) where
   (sh `D` d) == (sh2 `D` d2) = d == d2 && (sh == sh2)
   (sh `S` s) == (sh2 `S` s2) = s == s2 && (sh == sh2)
 
--- | rank
+-- | Rank of a shape (i.e. number of dimensions)
 rank :: Sh sh -> Int
 rank Z = 0
 rank (D sh _) = 1 + rank sh
 rank (S sh _) = 1 + rank sh
 
--- | dimensions
+-- | Dimension of a shape (i.e. list of dimension sizes)
 dim :: Sh sh -> [Integer]
 dim Z = []
 dim (D sh (Dim.D m)) = toInteger m : dim sh
@@ -58,7 +58,7 @@ dim (S sh (Dim.S _ _ m)) = toInteger m : dim sh
 
   
 -- | Shape of a dense rank-2 tensor (a matrix)
-mkD2 :: Int32 -> Int32 -> Sh ((Z :# Int32) :# Int32)
+mkD2 :: Int32 -> Int32 -> Sh D2
 mkD2 m n = (Z `D` Dim.D m) `D` Dim.D n
 
 -- | Shape of a rank-2 CSR tensor (dense in the first index, sparse in the second)

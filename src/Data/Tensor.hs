@@ -7,44 +7,35 @@ import qualified Data.Vector.Unboxed as V
 
 -- import Data.Word (Word32, Word64)
 
-import Data.Shape
+import Data.Shape (Sh(..), dim, rank,
+                   -- * Some synonyms
+                   D1, D2, CSR, COO, mkD2, mkCSR, mkCOO)
 import Data.Dim
 
 -- | The 'Tensor' type. Tensor data entries are stored as one single array
-data Tensor i a = Tensor {
-    tensorData :: V.Vector a
-  , tensorShape :: Sh i
-                         } deriving (Eq, Show)
+data Tensor i a where
+  T :: Sh i -> V.Vector a -> Tensor (Sh i) a
 
-nnz :: V.Unbox a => Tensor t a -> Int
-nnz (Tensor td _) = V.length td
+instance (V.Unbox a, Eq a) => Eq (Tensor i a) where
+  (T sh1 d1) == (T sh2 d2) = sh1 == sh2 && d1 == d2
+  
 
-mkT :: Sh i -> V.Vector a -> Tensor i a
-mkT = flip Tensor
-
--- dim :: DMD i -> Int
--- dim (DMD ed) = either dDim sDim ed
-
--- -- | Tensor dimension
--- dims :: Tensor i a -> [Int]
--- dims t = dim <$> tensorIxs t
+mkT :: Sh i -> V.Vector a -> Tensor (Sh i) a
+mkT = T
 
 
--- denseDim :: Int -> DMD Int
--- denseDim = DMD . Left . DMDDense
-
--- sparseDim :: Maybe (V.Vector i) -> V.Vector i -> Int -> DMD i
--- sparseDim pos ix d = DMD $ Right $ DMDSparse pos ix d
 
 
--- -- | Tensor rank (# of dimensions)
--- rank :: Tensor i a -> Int
--- rank = length . tensorIxs
+-- | Number of nonzero tensor elements
+nnz :: V.Unbox a => Tensor i a -> Int
+nnz (T _ td) = V.length td
+
+-- nnz :: V.Unbox a => Tensor t a -> Int
 
 
--- -- | Construction of dense vector 
--- vectorFromListD :: V.Unbox a => [a] -> Tensor Int a
--- vectorFromListD ll = Tensor (V.fromList ll) [denseDim (length ll)]
+-- mkT :: Sh i -> V.Vector a -> Tensor i a
+-- mkT = flip Tensor
+
 
 
 
