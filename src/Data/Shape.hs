@@ -36,6 +36,14 @@ dim (D sh (Dim.D m)) = m : dim sh
 dim (S sh (Dim.S _ _ m)) = m : dim sh
 
 
+-- fromList Z = []
+-- fromList (D sh (Dim.D m)) = 
+
+
+
+
+-- fromList Z = []
+-- fromList 
 
 
 instance Show (Sh sh) where

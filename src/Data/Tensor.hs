@@ -20,6 +20,9 @@ data Tensor i a = Tensor {
 nnz :: V.Unbox a => Tensor t a -> Int
 nnz (Tensor td _) = V.length td
 
+mkT :: Sh i -> V.Vector a -> Tensor i a
+mkT = flip Tensor
+
 -- dim :: DMD i -> Int
 -- dim (DMD ed) = either dDim sDim ed
 
