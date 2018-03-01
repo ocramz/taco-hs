@@ -19,7 +19,7 @@ library
   exposed-modules:     Data.Tensor
   other-modules:       Data.Shape
                        Data.Dim
-                       Data.TensorTest
+                       Data.Tensor.Compiler.PHOAS
   build-depends:       base >= 4.7 && < 5
                      , exceptions
                      , mtl
