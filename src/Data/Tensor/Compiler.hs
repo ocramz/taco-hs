@@ -33,11 +33,13 @@ import Data.Tensor.Compiler.PHOAS (Phoas(..), let_, let2_, var, lift1, lift2)
 
 
 
--- | throw exceptions related to incompatible data shape
+
 
 -- contract2 (T sh1 d1) (T sh2 d2) = undefined
 
-
+-- | Inject a 'Tensor' constan into a 'Var', while ensuring that all the contraction indices are compatible with those of the tensor.
+--
+-- Throws exceptions if any index is nonnegative or 
 mkVar :: MonadThrow m => [Int] -> Tensor i a -> m (Phoas (Tensor i a))
 mkVar [] t = pure $ var t
 mkVar (i:is) t
