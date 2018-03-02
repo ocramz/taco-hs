@@ -1,5 +1,4 @@
 {-# language GADTs, TypeOperators #-}
-
 module Data.Shape where
 
 import Data.Monoid
@@ -8,9 +7,10 @@ import Data.Int (Int32)
 -- import GHC.Natural
 
 import qualified Data.Vector.Unboxed as VU
+import           GHC.TypeLits (Nat)
 
 import qualified Data.Dim as Dim
-
+   
 
 data Z
 data sh :# e -- dense

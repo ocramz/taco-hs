@@ -2,6 +2,7 @@
 {-# language DeriveFunctor #-}
 {-# language TypeOperators #-}
 {-# language PackageImports #-}
+{-# language DataKinds, KindSignatures #-}
 module Data.Tensor (
   -- * Tensor type
   Tensor(..),
@@ -17,12 +18,21 @@ import qualified Data.Vector as V
 -- import Data.Int (Int32)
 
 import Control.Applicative
+import           GHC.TypeLits
 
 import qualified Data.Shape as Shape (dim, rank)
 import Data.Shape (Sh(..), 
                    Z,
                    D1, D2, CSR, COO, mkD2, mkCSR, mkCOO) 
 import qualified Data.Dim as Dim
+
+
+
+data Idx (ds :: [Nat]) where
+   -- | Zero-rank dimensionality - scalar
+   Zi :: Idx '[]
+   -- | List-like concatenation of indices
+   (:!) :: {-# UNPACK #-} !Int -> !(Idx ds) -> Idx (d ': ds)
 
 
 
