@@ -60,7 +60,7 @@ treeE n = let_ (treeE (n - 1)) $ \a -> a `plus` a
 
 
 -- | Semantic function for evaluation
-eval :: Phoas t -> t
+eval :: Phoas a -> a
 eval expr = case expr of
   Var x -> x
   Let e f -> eval (f (eval e))

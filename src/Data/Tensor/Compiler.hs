@@ -1,5 +1,26 @@
 {-# language GADTs #-}
 {-# language PackageImports #-}
+
+module Data.Tensor.Compiler (
+    contract
+    -- * Tensor types
+  , Tensor(..), Sh(..), Dd(..), Sd(..)
+    -- * Syntax
+  , Phoas, eval, var, let_, let2_
+    -- * Exceptions
+  , CException (..)
+  )where
+
+import Data.Typeable
+import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM, MonadCatch(..), catch)
+import Control.Exception (Exception(..))
+
+import Control.Applicative (liftA2, (<|>))
+
+import Data.Tensor (Tensor(..), Sh(..), Dd(..), Sd(..), tshape, tdata, nnz, rank, dim)
+import Data.Tensor.Compiler.PHOAS (Phoas(..), let_, let2_, var, lift1, lift2, eval)
+
+
 {- |
 IN: Tensor reduction syntax (Einstein notation)
 
@@ -15,27 +36,6 @@ internally, tensor data is stored in /dense/ vectors
 "contract A_{ijk}B_{k} over the third index"
 
 -}
-module Data.Tensor.Compiler (
-    contract
-    -- * Tensor types
-  , Tensor(..), Sh(..), Dd(..), Sd(..)
-    -- * Syntax
-  , Phoas, eval, var, let_, let2_
-    -- * Exceptions
-  , CException
-  )where
-
-import Data.Typeable
-import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM, MonadCatch(..), catch)
-import Control.Exception (Exception(..))
-
-import Control.Applicative (liftA2, (<|>))
-
-import Data.Tensor (Tensor(..), Sh(..), Dd(..), Sd(..), tshape, tdata, nnz, rank, dim)
-import Data.Tensor.Compiler.PHOAS (Phoas(..), let_, let2_, var, lift1, lift2, eval)
-
-
-
 
 
 
@@ -60,12 +60,12 @@ mkIxs ixs mm = go ixs []
 --
 -- Inject two 'Tensor' constant into 'Var's, while ensuring that all the contraction indices are compatible with those of the tensors.
 --
--- Throws exceptions if any index is nonnegative or too large for the shape of the given tensor.
+-- Throws a 'CException' if any index is nonnegative or too large for the shape of the given tensor.
 contract :: MonadThrow m =>
                   [Int]           -- ^ Tensor contraction indices
-                  -> Tensor i a
-                  -> Tensor i b
-                  -> ([Int] -> Tensor i a -> Tensor i b -> Phoas c) -- ^ Contraction function
+                  -> Tensor i1 a
+                  -> Tensor i2 b
+                  -> ([Int] -> Tensor i1 a -> Tensor i2 b -> Phoas c) -- ^ Contraction function
                   -> m (Phoas c)
 contract ixs0 t1 t2 f = do
   _ <- mkIxs ixs0 (rank t1)
