@@ -7,8 +7,6 @@ module Data.Tensor.Compiler.PHOAS where
 data Phoas a where
   Var :: a -> Phoas a
   Let :: Phoas a -> (a -> Phoas a) -> Phoas a
-  -- UnOp :: (a -> a) -> Phoas a -> Phoas a 
-  -- BinOp :: (a -> a -> a) -> Phoas a -> Phoas a -> Phoas a
 
 var :: a -> Phoas a
 var = Var

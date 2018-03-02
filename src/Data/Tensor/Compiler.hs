@@ -18,9 +18,12 @@ internally, tensor data is stored in /dense/ vectors
 module Data.Tensor.Compiler (
     mkVar
     -- * Tensor types
-  , Tensor(..), Sh(..)
+  , Tensor(..), Sh(..), Dd(..), Sd(..)
     -- * Syntax
-  , Phoas(..),  )where
+  , Phoas(..)
+    -- * Exceptions
+  , CException
+  )where
 
 import Data.Typeable
 import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM, MonadCatch(..), catch)
@@ -28,7 +31,7 @@ import Control.Exception (Exception(..))
 
 import Control.Applicative (liftA2, (<|>))
 
-import Data.Tensor (Tensor(..), Sh(..), tshape, tdata, nnz, rank, dim)
+import Data.Tensor (Tensor(..), Sh(..), Dd(..), Sd(..), tshape, tdata, nnz, rank, dim)
 import Data.Tensor.Compiler.PHOAS (Phoas(..), let_, let2_, var, lift1, lift2)
 
 

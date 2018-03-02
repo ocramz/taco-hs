@@ -12,8 +12,11 @@ newtype Dd i = Dd { dDim :: i } deriving (Eq, Show)
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
 data Sd i = Sd {
+      -- | Cumulative array (# nonzero entries per degree of freedom). Not all storage formats (e.g. COO for rank-2 tensors) need this information.
       sCml :: Maybe (V.Vector i)
+      -- | Index array (indices of nonzero entries)
     , sIdx :: V.Vector i
+      -- | Size of the tensor along this dimension
     , sDim :: i }
   deriving (Eq, Show)
 
