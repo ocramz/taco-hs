@@ -7,7 +7,12 @@ module Data.Tensor.Compiler.PHOAS where
 data Phoas a where
   Var :: a -> Phoas a
   Let :: Phoas a -> (a -> Phoas a) -> Phoas a
+  -- UnOp :: (a -> a) -> Phoas a -> Phoas a 
+  -- BinOp :: (a -> a -> a) -> Phoas a -> Phoas a -> Phoas a
 
+var :: a -> Phoas a
+var = Var
+    
 let_ :: Phoas a -> (a -> Phoas a) -> Phoas a
 let_ = Let
 
@@ -22,10 +27,10 @@ letP2_ :: Phoas a -> Phoas a -> (Phoas a -> Phoas a -> Phoas a) -> Phoas a
 letP2_ a b f = let2_ a b (\x y -> f (Var x) (Var y))
 
 
-instance Show a => Show (Phoas a) where
-  show e = case e of
-    Var x -> show x
-    -- Let e f -> unwords
+-- instance Show a => Show (Phoas a) where
+--   show e = case e of
+--     Var x -> show x
+--     -- Let e f -> unwords
 
 
 
@@ -66,7 +71,7 @@ type ClosedExpr = forall a . Phoas a
 pprint :: ClosedExpr -> String
 pprint expr = go expr 0
   where
-    -- go :: Phoas String -> Int -> String
+    go :: Phoas String -> Int -> String
     go (Var x) _ = x
     go (Let e f) c = unwords ["(let", v, "=", go e (c+1), "in", go (f v) (c+1),")"]
       where
@@ -77,19 +82,72 @@ pprint expr = go expr 0
 
 -- * A possible abstract syntax
 
+
+{-|
+* inner product of two vectors
+* matrix-vector action
+* matrix-matrix product
+-}
+
+data Expr a =
+    Konst a
+  | Dot (Expr a) (Expr a)
+  deriving (Eq, Show)
+
+k :: a -> Expr a
+k = Konst
+
+
+
+
+-- data UnOp = Sqrt deriving (Eq, Show)
+data BinOp = Add | Sub | Mul | Div deriving (Eq, Show)
+evalBinOp :: Fractional a => BinOp -> a -> a -> a
+evalBinOp op = case op of
+  Add -> (+)
+  Sub -> (-)
+  Mul -> (*)
+  Div -> (/)
+
+data EI a =
+    -- CW1 UnOp (Expr a)
+  CW2 BinOp (Expr a) (Expr a) deriving (Eq, Show)
+
+v1, v2 :: Expr [Int]
+v1 = k [1..5]
+v2 = k [3..7]
+
+-- evalEI expr = case expr of
+--   CW2 op x y ->
+
+
+
+
+
+
 -- data Index i where
 --   I1 :: i -> Index i
 --   I2 :: i -> i -> Index (i, i)
 
--- | Expressions with tensor operands, e.g. "contract A_{ijk}B_{k} over the third index"
+-- -- | Expressions with tensor operands, e.g. "contract A_{ijk}B_{k} over the third index"
 
--- | User-facing grammar:
+-- -- | User-facing grammar:
 -- data Expr a where
---   Const :: a -> Expr a
---   Contract :: i -> Expr a -> Expr a -> Expr a
--- --   -- (:*:) :: Expr a -> Expr a -> Expr a
--- --   -- (:+:) :: Expr a -> Expr a -> Expr a
+--   -- | Introduce a constant in the AST
+--   Konst :: a -> Expr a
+--   -- | Tensor contraction
+--   Contr :: i -> (Expr a -> Expr a -> Expr a) -> Expr a
+--   -- | Binary componentwise operation
+--   CW2 :: (a -> a -> a) -> Expr a -> Expr a -> Expr a
 
+-- k :: a -> Expr a
+-- k = Konst
+
+-- (|*|), (|+|) :: Num a => Expr a -> Expr a -> Expr a
+-- (|*|) = CW2 (*)  
+-- (|+|) = CW2 (+)
+
+-- dot = Contr 1 (|+|)
 
 
 

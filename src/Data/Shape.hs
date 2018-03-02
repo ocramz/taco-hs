@@ -26,6 +26,7 @@ data Sh sh where
   S :: Sh sh -> Dim.Sd Int32 -> Sh (sh :. Int32) 
 
 type D1 = Z :# Int32
+type S1 = Z :. Int32
 type D2 = (Z :# Int32) :# Int32
 type CSR = (Z :# Int32) :. Int32
 type COO = (Z :. Int32) :. Int32
@@ -49,14 +50,20 @@ rank (D sh _) = 1 + rank sh
 rank (S sh _) = 1 + rank sh
 
 -- | Dimension of a shape (i.e. list of dimension sizes)
-dim :: Sh sh -> [Integer]
+dim :: Sh sh -> [Int]
 dim Z = []
-dim (D sh (Dim.Dd m)) = toInteger m : dim sh
-dim (S sh (Dim.Sd _ _ m)) = toInteger m : dim sh
+dim (D sh (Dim.Dd m)) = fromIntegral m : dim sh
+dim (S sh (Dim.Sd _ _ m)) = fromIntegral m : dim sh
 
 
 
+-- | Shape of a dense vector
+mkD1 :: Int32 -> Sh D1
+mkD1 m = Z `D` Dim.Dd m
 
+-- | Shape of a sparse vector
+mkS1 :: Int32 -> VU.Vector Int32 -> VU.Vector Int32 -> Sh S1
+mkS1 m segv ixv = Z `S` Dim.Sd (Just segv) ixv m
   
 -- | Shape of a dense rank-2 tensor (a matrix)
 mkD2 :: Int32 -> Int32 -> Sh D2

@@ -5,7 +5,7 @@
 module Data.Tensor (
   -- * Tensor type
   Tensor(..),
-  shape, nnz, rank, dim, 
+  tshape, tdata, nnz, rank, dim, 
   -- * Shape type
   Sh(..),
   -- * Dimension types
@@ -17,6 +17,10 @@ import qualified Data.Vector as V
 -- import Data.Word (Word32, Word64)
 -- import Data.Int (Int32)
 
+-- import Data.Foldable (foldrM, foldlM)
+import Control.Applicative
+
+import Data.Typeable
 import Control.Exception (Exception(..))
 import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM, MonadCatch(..), catch)
 
@@ -46,12 +50,7 @@ internally, tensor data is stored in /dense/ vectors
 
 
 
--- | A generic tensor type, polymorphic in the container type as well
-data GTensor c i a where
-  GTensor :: Sh i -> c a -> GTensor c (Sh i) a
-  
-mkGT :: Sh i -> c a -> GTensor c (Sh i) a
-mkGT = GTensor
+
 
 
 -- | The 'Tensor' type. Tensor data entries are stored as one single array
@@ -80,9 +79,13 @@ instance (Show a) => Show (Tensor i a) where
 
  
 
--- | Access the shape of a tensor
-shape :: Tensor sh a -> sh
-shape (T sh _) = sh
+-- | Access the shape of a 'Tensor'
+tshape :: Tensor sh a -> sh
+tshape (T sh _) = sh
+
+-- | Access the raw data of a 'Tensor'
+tdata :: Tensor sh a -> V.Vector a
+tdata (T _ td) = td
 
 -- | Number of nonzero tensor elements
 nnz :: Tensor i a -> Int
@@ -94,15 +97,28 @@ rank (T sh _) = Shape.rank sh
 
 -- | Tensor dimensions
 dim :: Tensor i a -> [Int]
-dim (T sh _) = fromIntegral <$> Shape.dim sh
+dim (T sh _) = Shape.dim sh
+
+
+compatDim :: Tensor i a -> Int -> Bool
+compatDim t i
+  | i >= 0 && i <= rank t = True
+  | otherwise = False
+
+
+data CException = IncompatShape String deriving (Eq, Show, Typeable)
+instance Exception CException where
 
 
 
+-- | playground, for future use
 
-
-
-
-
+-- -- | A generic tensor type, polymorphic in the container type as well
+-- data GTensor c i a where
+--   GTensor :: Sh i -> c a -> GTensor c (Sh i) a
+  
+-- mkGT :: Sh i -> c a -> GTensor c (Sh i) a
+-- mkGT = GTensor
 
 
 
