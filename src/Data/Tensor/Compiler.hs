@@ -1,6 +1,26 @@
 {-# language GADTs #-}
 {-# language PackageImports #-}
-module Data.Tensor.Compiler where
+{- |
+IN: Tensor reduction syntax (Einstein notation)
+
+OUT: stride program (how to read/write memory)
+
+
+taco compiles a tensor expression (e.g. C = A_{ijk}B_{k} ) into a series of nested loops.
+
+dimensions : can be either dense or sparse
+
+internally, tensor data is stored in /dense/ vectors
+
+"contract A_{ijk}B_{k} over the third index"
+
+-}
+module Data.Tensor.Compiler (
+    mkVar
+    -- * Tensor types
+  , Tensor(..), Sh(..)
+    -- * Syntax
+  , Phoas(..),  )where
 
 import Data.Typeable
 import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM, MonadCatch(..), catch)
@@ -8,8 +28,8 @@ import Control.Exception (Exception(..))
 
 import Control.Applicative (liftA2, (<|>))
 
-import Data.Tensor
-import Data.Tensor.Compiler.PHOAS -- (Phoas(..), let_, let2_, lift1, lift2)
+import Data.Tensor (Tensor(..), Sh(..), tshape, tdata, nnz, rank, dim)
+import Data.Tensor.Compiler.PHOAS (Phoas(..), let_, let2_, var, lift1, lift2)
 
 
 
