@@ -62,15 +62,16 @@ mkIxs ixs mm = go ixs []
 --
 -- Throws exceptions if any index is nonnegative or too large for the shape of the given tensor.
 contract :: MonadThrow m =>
-                  [Int]         -- ^ Contraction indices
-                  -> Tensor i a 
+                  [Int]           -- ^ Tensor contraction indices
                   -> Tensor i a
-                  -> (Tensor i a -> Tensor i a -> Phoas (Tensor i a))  -- ^ Contraction function
-                  -> m (Phoas (Tensor i a))
-contract ixs t1 t2 f = do
-  t1p <- mkVar ixs t1
-  t2p <- mkVar ixs t2
-  pure $ let2_ t1p t2p f
+                  -> Tensor i b
+                  -> ([Int] -> Tensor i a -> Tensor i b -> Phoas c) -- ^ Contraction function
+                  -> m (Phoas c)
+contract ixs0 t1 t2 f = do
+  _ <- mkIxs ixs0 (rank t1)
+  ixs <- mkIxs ixs0 (rank t2)
+  pure $ let_ (var ixs) $ \ixs' ->
+    let2_ (var t1) (var t2) (f ixs')
 
 
 -- | Exceptions
