@@ -7,22 +7,60 @@ module Data.Tensor.Compiler.PHOAS where
 data Phoas a where
   Var :: a -> Phoas a
   Let :: Phoas a -> (a -> Phoas a) -> Phoas a
-  Let2 :: Phoas a -> Phoas a -> (a -> a -> Phoas a) -> Phoas a
+
+let_ :: Phoas a -> (a -> Phoas a) -> Phoas a
+let_ = Let
+
+let2_ :: Phoas a -> Phoas a -> (a -> a -> Phoas a) -> Phoas a
+let2_ a b f = let_ a $ \xa ->
+  let_ b $ \xb -> f xa xb
+
+letP_ :: Phoas a -> (Phoas a -> Phoas a) -> Phoas a
+letP_ e f = let_ e (f . Var)
+
+letP2_ :: Phoas a -> Phoas a -> (Phoas a -> Phoas a -> Phoas a) -> Phoas a
+letP2_ a b f = let2_ a b (\x y -> f (Var x) (Var y))
+
 
 instance Show a => Show (Phoas a) where
   show e = case e of
     Var x -> show x
     -- Let e f -> unwords
 
+
+
+-- | Helper functions  
+
+
+lift1 :: (a -> b) -> a -> Phoas b
+lift1 f = Var . f -- Lift1
+
+lift2 :: (a -> b -> c) -> a -> b -> Phoas c
+lift2 f a b = Var (f a b) -- Lift2
+
+
+plus :: Num a => a -> a -> Phoas a
+plus = lift2 (+)
+
+
+-- | Benchmark: `tree 50` should compute the answer instantly.
+--
+-- This proves that the PHOAS formulation preserves variable sharing
+treeE :: Integer -> Phoas Integer
+treeE 0 = Var 1
+treeE n = let_ (treeE (n - 1)) $ \a -> a `plus` a 
+
+
+
+
 -- | Semantic function for evaluation
 eval :: Phoas t -> t
 eval expr = case expr of
   Var x -> x
   Let e f -> eval (f (eval e))
-  Let2 e0 e1 f -> eval (f e0' e1') where {e0' = eval e0; e1' = eval e1}
 
 
-
+-- | Semantic function for pretty-printing
 type ClosedExpr = forall a . Phoas a
 
 pprint :: ClosedExpr -> String
@@ -33,33 +71,6 @@ pprint expr = go expr 0
     go (Let e f) c = unwords ["(let", v, "=", go e (c+1), "in", go (f v) (c+1),")"]
       where
         v = "v" ++ show c
-
--- | Helper functions  
-
-let_ :: Phoas a -> (Phoas a -> Phoas a) -> Phoas a
-let_ e f = Let e (f . Var)
-
-let2_ :: Phoas a -> Phoas a -> (Phoas a -> Phoas a -> Phoas a) -> Phoas a
-let2_ e0 e1 f = Let2 e0 e1 (\x y -> f (Var x) (Var y))
-
-lift1 :: (a -> b) -> a -> Phoas b
-lift1 f = Var . f -- Lift1
-
-lift2 :: (a -> b -> c) -> a -> b -> Phoas c
-lift2 f a b = Var (f a b) -- Lift2
-
-plus :: Num a => Phoas a -> Phoas a -> Phoas a
-plus a b = Let2 a b (lift2 (+))
-
-
-
--- | Benchmark: `tree 50` should compute the answer instantly.
---
--- This proves that the PHOAS formulation preserves variable sharing
--- treeE :: Integer -> Phoas Integer
-treeE :: (Num a, Num t, Eq t) => t -> Phoas a
-treeE 0 = Var 1
-treeE n = let_ (treeE (n - 1)) (\s -> s `plus` s)
 
 
 
