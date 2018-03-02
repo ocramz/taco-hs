@@ -14,15 +14,9 @@ module Data.Tensor (
 import qualified Data.Vector as V
 -- import qualified Data.Vector.Unboxed as VU
 
--- import Data.Word (Word32, Word64)
 -- import Data.Int (Int32)
 
--- import Data.Foldable (foldrM, foldlM)
 import Control.Applicative
-
-import Data.Typeable
-import Control.Exception (Exception(..))
-import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM, MonadCatch(..), catch)
 
 import qualified Data.Shape as Shape (dim, rank)
 import Data.Shape (Sh(..), 
@@ -100,14 +94,7 @@ dim :: Tensor i a -> [Int]
 dim (T sh _) = Shape.dim sh
 
 
-compatDim :: Tensor i a -> Int -> Bool
-compatDim t i
-  | i >= 0 && i <= rank t = True
-  | otherwise = False
 
-
-data CException = IncompatShape String deriving (Eq, Show, Typeable)
-instance Exception CException where
 
 
 
