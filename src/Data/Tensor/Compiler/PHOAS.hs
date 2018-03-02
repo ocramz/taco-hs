@@ -2,18 +2,20 @@
 module Data.Tensor.Compiler.PHOAS where
 
 
--- * PHOAS, after B. Oliveira, A. Loeh, `Abstract Syntax Graphs for Domain Specific Languages`  
-
+-- | Parametric higher-order abstract syntax (PHOAS), after B. Oliveira, A. Loeh, `Abstract Syntax Graphs for Domain Specific Languages`  
 data Phoas a where
   Var :: a -> Phoas a
   Let :: Phoas a -> (a -> Phoas a) -> Phoas a
 
+-- | Inject a constant into the abstract syntax
 var :: a -> Phoas a
 var = Var
-    
+
+-- | Bind a variable into a closure
 let_ :: Phoas a -> (a -> Phoas a) -> Phoas a
 let_ = Let
 
+-- | Bind two variables into a closure
 let2_ :: Phoas a -> Phoas a -> (a -> a -> Phoas a) -> Phoas a
 let2_ a b f = let_ a $ \xa ->
   let_ b $ \xb -> f xa xb

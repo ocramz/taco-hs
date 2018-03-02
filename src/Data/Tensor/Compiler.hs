@@ -16,11 +16,11 @@ internally, tensor data is stored in /dense/ vectors
 
 -}
 module Data.Tensor.Compiler (
-    mkVar, contract
+    contract
     -- * Tensor types
   , Tensor(..), Sh(..), Dd(..), Sd(..)
     -- * Syntax
-  , Phoas(..)
+  , Phoas, eval, var, let_, let2_
     -- * Exceptions
   , CException
   )where
@@ -39,9 +39,7 @@ import Data.Tensor.Compiler.PHOAS (Phoas(..), let_, let2_, var, lift1, lift2, ev
 
 
 
--- | Inject a 'Tensor' constant into a 'Var', while ensuring that all the contraction indices are compatible with those of the tensor.
---
--- Throws exceptions if any index is nonnegative or too large for the shape of the given tensor
+
 mkVar :: MonadThrow m => [Int] -> Tensor i a -> m (Phoas (Tensor i a))
 mkVar [] t = pure $ var t
 mkVar (i:is) t
@@ -53,6 +51,10 @@ mkVar (i:is) t
 
 
 -- | Tensor contraction
+--
+-- Inject two 'Tensor' constant into 'Var's, while ensuring that all the contraction indices are compatible with those of the tensors.
+--
+-- Throws exceptions if any index is nonnegative or too large for the shape of the given tensor.
 contract :: MonadThrow m =>
                   [Int]         -- ^ Contraction indices
                   -> Tensor i a 
