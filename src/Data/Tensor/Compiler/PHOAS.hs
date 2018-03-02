@@ -5,26 +5,27 @@ module Data.Tensor.Compiler.PHOAS where
 -- | Parametric higher-order abstract syntax (PHOAS), after B. Oliveira, A. Loeh, `Abstract Syntax Graphs for Domain Specific Languages`  
 data Phoas a where
   Var :: a -> Phoas a
-  Let :: Phoas a -> (a -> Phoas a) -> Phoas a
+  Let :: Phoas a -> (a -> Phoas b) -> Phoas b
+  -- Let :: Phoas a -> (a -> Phoas a) -> Phoas a
 
 -- | Inject a constant into the abstract syntax
 var :: a -> Phoas a
 var = Var
 
 -- | Bind a variable into a closure
-let_ :: Phoas a -> (a -> Phoas a) -> Phoas a
+let_ :: Phoas a -> (a -> Phoas b) -> Phoas b
 let_ = Let
 
 -- | Bind two variables into a closure
-let2_ :: Phoas a -> Phoas a -> (a -> a -> Phoas a) -> Phoas a
+let2_ :: Phoas a -> Phoas b -> (a -> b -> Phoas c) -> Phoas c
 let2_ a b f = let_ a $ \xa ->
   let_ b $ \xb -> f xa xb
 
-letP_ :: Phoas a -> (Phoas a -> Phoas a) -> Phoas a
-letP_ e f = let_ e (f . Var)
+-- letP_ :: Phoas a -> (Phoas a -> Phoas a) -> Phoas a
+-- letP_ e f = let_ e (f . Var)
 
-letP2_ :: Phoas a -> Phoas a -> (Phoas a -> Phoas a -> Phoas a) -> Phoas a
-letP2_ a b f = let2_ a b (\x y -> f (Var x) (Var y))
+-- letP2_ :: Phoas a -> Phoas a -> (Phoas a -> Phoas a -> Phoas a) -> Phoas a
+-- letP2_ a b f = let2_ a b (\x y -> f (Var x) (Var y))
 
 
 -- instance Show a => Show (Phoas a) where
@@ -65,17 +66,17 @@ eval expr = case expr of
   Let e f -> eval (f (eval e))
 
 
--- | Semantic function for pretty-printing
-type ClosedExpr = forall a . Phoas a
+-- -- | Semantic function for pretty-printing
+-- type ClosedExpr = forall a . Phoas a
 
-pprint :: ClosedExpr -> String
-pprint expr = go expr 0
-  where
-    go :: Phoas String -> Int -> String
-    go (Var x) _ = x
-    go (Let e f) c = unwords ["(let", v, "=", go e (c+1), "in", go (f v) (c+1),")"]
-      where
-        v = "v" ++ show c
+-- pprint :: ClosedExpr -> String
+-- pprint expr = go expr 0
+--   where
+--     go :: Phoas String -> Int -> String
+--     go (Var x) _ = x
+--     go (Let e f) c = unwords ["(let", v, "=", go e (c+1), "in", go (f v) (c+1),")"]
+--       where
+--         v = "v" ++ show c
 
 
 

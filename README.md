@@ -1,6 +1,8 @@
 # taco
 
-Haskell implementation of the Tensor Algebra COmpiler (`taco`) [1]
+Tensor Algebra COmpiler (`taco`).
+
+This library is loosely inspired by [1] but follows an independent design.
 
 **NB: Experimental and not yet ready for general use**
 

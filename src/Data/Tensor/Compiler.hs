@@ -41,14 +41,20 @@ import Data.Tensor.Compiler.PHOAS (Phoas(..), let_, let2_, var, lift1, lift2, ev
 
 
 mkVar :: MonadThrow m => [Int] -> Tensor i a -> m (Phoas (Tensor i a))
-mkVar [] t = pure $ var t
-mkVar (i:is) t
-  | i < 0 =
-    throwM $ IncompatIx "Index must be non-negative"
-  | i > rank t - 1 =
-    throwM $ IncompatShape "Index exceeds is incompatible with the tensor rank"
-  | otherwise = mkVar is t
+mkVar ixs0 t = do
+  ixs <- mkIxs ixs0 (rank t)
+  return $ var t
 
+
+mkIxs :: MonadThrow m => [Int] -> Int -> m [Int]
+mkIxs ixs mm = go ixs []
+  where
+    go [] acc = pure acc
+    go (i:is) acc | i < 0 =
+                    throwM $ IncompatIx "Index must be non-negative"
+                  | i > mm - 1 =
+                    throwM $ IncompatIx $ unwords ["Index must be smaller than", show mm]
+                  | otherwise = go is (i : acc)
 
 -- | Tensor contraction
 --
