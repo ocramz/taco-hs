@@ -1,10 +1,15 @@
 {-# language GADTs, TypeOperators #-}
+{-# language TypeFamilies #-}
 module Data.Dim where
 
 import Data.Vector.Unboxed as V
 
 
 -- * Dimension metadata
+
+data family Dim a
+data instance Dim (Dd i)
+data instance Dim (Sd i)
 
 -- | To define a /dense/ dimension we only need the dimensionality parameter
 newtype Dd i = Dd { dDim :: i } deriving (Eq, Show)
