@@ -28,6 +28,9 @@ data sh :. e -- sparse
 
 -- | A statically-typed tensor shape parameter that supports both sparse and dense dimensions.
 -- Dimensions are indexed with 'Int32' indices, which should be enough for most applications.
+--
+-- Note: in this formulation, only the /rank/ (i.e. the number of dimensions) is known at compile time. The actual dimensionality is only known at runtime.
+-- To address this, see Data.Shape.Static
 data Sh sh where 
   Z :: Sh Z
   -- | Constructor for a dense dimension  
