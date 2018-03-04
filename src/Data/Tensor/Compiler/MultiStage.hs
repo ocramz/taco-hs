@@ -11,18 +11,18 @@ module Data.Tensor.Compiler.MultiStage where
 data E1 a =
     K1 a
   | Dot a a -- (E1 a) (E1 a)
-  -- | CW2 BinOp (E1 a) (E1 a)
   deriving (Eq, Show)
 
+-- | Evaluate user-facing syntax into internal one
 evalE1 :: E1 a -> E2 a
 evalE1 expr = case expr of
   K1 x -> K2 x
   Dot a b -> Fold Add (ZipWith Mul (K2 a) (K2 b))
 
-k1 :: a -> E1 a
-k1 = K1
-dot :: a -> a -> E1 a
-dot = Dot
+-- k1 :: a -> E1 a
+-- k1 = K1
+-- dot :: a -> a -> E1 a
+-- dot = Dot
 
 
 -- | Internal representation

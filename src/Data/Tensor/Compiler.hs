@@ -21,24 +21,24 @@ import Data.Tensor -- (Tensor(..), Sh(..), Dd(..), Sd(..), tshape, tdata, nnz, r
 import Data.Tensor.Compiler.PHOAS -- (Phoas(..), let_, let2_, var, lift1, lift2, eval)
 
 
-{- |
-IN: Tensor reduction syntax (Einstein notation)
 
-OUT: stride program (how to read/write memory)
+-- IN: Tensor reduction syntax (Einstein notation)
+
+-- OUT: stride program (how to read/write memory)
 
 
-taco compiles a tensor expression (e.g. C = A_{ijk}B_{k} ) into a series of nested loops.
+-- taco compiles a tensor expression (e.g. C = A_{ijk}B_{k} ) into a series of nested loops.
 
-dimensions : can be either dense or sparse
+-- dimensions : can be either dense or sparse
 
-internally, tensor data is stored in /dense/ vectors
+-- internally, tensor data is stored in /dense/ vectors
 
-"contract A_{ijk}B_{k} over the third index"
-
--}
+-- "contract A_{ijk}B_{k} over the third index"
 
 
 
+
+-- | 
 
 -- mkVar :: MonadThrow m => [Int] -> Tensor i a -> m (Phoas (Tensor i a))
 -- mkVar ixs0 t = do
