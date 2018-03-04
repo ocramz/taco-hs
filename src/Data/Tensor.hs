@@ -24,7 +24,8 @@ import Control.Applicative
 import qualified Data.Shape as Shape (dim, rank)
 import Data.Shape (Sh(..), 
                    Z,
-                   D1, D2, CSR, COO, mkD2, mkCSR, mkCOO) 
+                   D1, D2, CSR, COO, mkD2, mkCSR, mkCOO)
+import qualified Data.Shape.Dynamic as ShDyn       
 import qualified Data.Dim as Dim
 
 

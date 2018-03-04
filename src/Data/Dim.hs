@@ -14,7 +14,6 @@ data instance Dim (Sd i)
 -- | To define a /dense/ dimension we only need the dimensionality parameter
 newtype Dd i = Dd { dDim :: i } deriving (Eq, Show)
 
-
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
 data Sd i = Sd {
       -- | Cumulative array (# nonzero entries per degree of freedom). Not all storage formats (e.g. COO for rank-2 tensors) need this information.
@@ -29,7 +28,8 @@ data Sd i = Sd {
 --
 -- Example: the CSR format is /dense/ in the first index (rows) and /sparse/ in the second index (columns)
 
--- newtype DMD i = DMD (Either (DMDDense i) (DMDSparse i)) deriving (Eq, Show)
+dim :: Either (Dd c) (Sd c) -> c
+dim = either dDim sDim
 
 
   
