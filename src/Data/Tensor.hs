@@ -2,6 +2,7 @@
 {-# language DeriveFunctor #-}
 {-# language TypeOperators #-}
 {-# language PackageImports #-}
+{-# language TypeFamilies #-}
 
 module Data.Tensor (
   -- * Tensor type
@@ -25,6 +26,16 @@ import Data.Shape (Sh(..),
                    Z,
                    D1, D2, CSR, COO, mkD2, mkCSR, mkCOO) 
 import qualified Data.Dim as Dim
+
+
+
+-- | If the 'Shape' is a type function, we can define a 'Tenzor' type that's parametrized by it (e.g. 'Sh' from Data.Shape.Static or 'ShD' from Data.Shape.Dynamic)
+class Shape sh where
+  type ShapeT sh :: *
+    
+data Tenzor sh a where
+  Tenzor :: ShapeT sh -> V.Vector a -> Tenzor sh a 
+
 
 
 

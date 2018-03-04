@@ -99,8 +99,6 @@ k :: a -> Expr a
 k = Konst
 
 
-
-
 -- data UnOp = Sqrt deriving (Eq, Show)
 data BinOp = Add | Sub | Mul | Div deriving (Eq, Show)
 evalBinOp :: Fractional a => BinOp -> a -> a -> a
@@ -118,8 +116,6 @@ v1, v2 :: Expr [Int]
 v1 = k [1..5]
 v2 = k [3..7]
 
--- evalEI expr = case expr of
---   CW2 op x y ->
 
 
 

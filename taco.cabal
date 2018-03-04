@@ -20,6 +20,7 @@ library
   other-modules:       Data.Tensor
                        Data.Shape
                        Data.Dim
+                       Data.Shape.Dynamic
                        Data.Shape.Static
                        Data.Tensor.Compiler.PHOAS
   build-depends:       base >= 4.7 && < 5
