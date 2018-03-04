@@ -32,6 +32,8 @@ import qualified Data.Dim as Dim
 -- | If the 'Shape' is a type function, we can define a 'Tenzor' type that's parametrized by it (e.g. 'Sh' from Data.Shape.Static or 'ShD' from Data.Shape.Dynamic)
 class Shape sh where
   type ShapeT sh :: *
+  shRank :: sh -> [Int]
+  shDim :: sh -> Int
     
 data Tenzor sh a where
   Tenzor :: ShapeT sh -> V.Vector a -> Tenzor sh a 

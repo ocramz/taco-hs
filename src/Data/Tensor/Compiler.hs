@@ -2,11 +2,11 @@
 {-# language PackageImports #-}
 
 module Data.Tensor.Compiler (
-    contract
-    -- * Tensor types
-  , Tensor(..), Sh(..), Dd(..), Sd(..)
+  --   contract
+  --   -- * Tensor types
+  -- , Tensor(..), Sh(..), Dd(..), Sd(..)
     -- * Syntax
-  , Phoas, eval, var, let_, let2_
+    Phoas, eval, var, let_, let2_
     -- * Exceptions
   , CException (..)
   )where

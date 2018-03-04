@@ -90,13 +90,45 @@ eval expr = case expr of
 * matrix-matrix product
 -}
 
-data Expr a =
-    Konst a
-  | Dot (Expr a) (Expr a)
+data E1 a =
+    K1 a
+  | Dot a a -- (E1 a) (E1 a)
+  -- | CW2 BinOp (E1 a) (E1 a)
   deriving (Eq, Show)
 
-k :: a -> Expr a
-k = Konst
+k1 :: a -> E1 a
+k1 = K1
+
+evalE1 :: E1 a -> E2 a
+evalE1 expr = case expr of
+  K1 x -> K2 x
+  Dot a b -> Fold Add (ZipWith Mul (K2 a) (K2 b))
+
+dot :: a -> a -> E1 a
+dot = Dot
+
+data E2 a =
+    K2 a
+  | ZipWith BinOp (E2 a) (E2 a)
+  | Fold BinOp (E2 a) deriving (Eq, Show)
+
+evalE :: Fractional b => b -> E1 [b] -> [b]
+evalE z = evalE2 z . evalE1
+
+k2 :: a -> E2 a
+k2 = K2
+
+-- addE2 :: a -> a -> E2 a
+-- addE2 a b = ZipWith Add (k2 a) (k2 b)
+-- mulE2 :: a -> a -> E2 a
+-- mulE2 a b = ZipWith Mul (k2 a) (k2 b)
+
+
+evalE2 :: Fractional b => b -> E2 [b] -> [b]
+evalE2 z expr = case expr of
+  K2 x -> x
+  ZipWith op v1 v2 -> zipWith (evalBinOp op) (evalE2 z v1) (evalE2 z v2)
+  Fold op v -> [foldr (evalBinOp op) z (evalE2 z v)]
 
 
 -- data UnOp = Sqrt deriving (Eq, Show)
@@ -108,13 +140,9 @@ evalBinOp op = case op of
   Mul -> (*)
   Div -> (/)
 
-data EI a =
-    -- CW1 UnOp (Expr a)
-  CW2 BinOp (Expr a) (Expr a) deriving (Eq, Show)
-
-v1, v2 :: Expr [Int]
-v1 = k [1..5]
-v2 = k [3..7]
+-- v1, v2 :: E1 [Int]
+-- v1 = k [1..5]
+-- v2 = k [3..7]
 
 
 
