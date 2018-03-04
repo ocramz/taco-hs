@@ -23,6 +23,7 @@ library
                        Data.Shape.Dynamic
                        Data.Shape.Static
                        Data.Tensor.Compiler.PHOAS
+                       Data.Tensor.Compiler.MultiStage
   build-depends:       base >= 4.7 && < 5
                      , exceptions
                      , mtl
