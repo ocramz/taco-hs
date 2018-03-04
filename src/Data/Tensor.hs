@@ -30,7 +30,7 @@ import qualified Data.Dim as Dim
 
 
 
-
+-- | A tensor type with dimensions only known at runtime
 data Tenzor i a = Tenzor {tzShape :: ShDyn.ShD i, tzData :: V.Vector a }
 
 instance Integral i => Shape.Shape (Tenzor i a) where
@@ -41,12 +41,12 @@ instance Integral i => Shape.Shape (Tenzor i a) where
 
 instance Shape.Shape (Tensor (Sh i) a) where
   type ShapeT (Tensor (Sh i) a) = Sh i
-  shape (Tensor sh _) = sh
+  shape = tshape 
   shRank = rank
   shDim = dim
 
 
--- | The 'Tensor' type. Tensor data entries are stored as one single array
+-- | The 'Tensor' type with statically known shape. Tensor data entries are stored as one single array
 data Tensor i a where
   Tensor :: Sh i -> V.Vector a -> Tensor (Sh i) a 
 
