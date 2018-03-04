@@ -15,8 +15,9 @@ mkDenseShD xss = ShD $ foldl' (\d s -> Left (Dim.Dd s) : d) [] xss
 rank :: ShD i -> Int
 rank = length . unShD 
 
-dim :: ShD i -> [i]
-dim sh = foldl' (\d s -> Dim.dim s : d) [] (unShD sh)
+-- dim :: ShD i -> [i]
+dim :: (Num b, Integral a) => ShD a -> [b]
+dim sh = fromIntegral <$> foldl' (\d s -> Dim.dim s : d) [] (unShD sh)
 
 
 

@@ -1,4 +1,5 @@
 {-# language GADTs, TypeOperators #-}
+{-# language TypeFamilies #-}
 module Data.Shape where
 
 import Data.Monoid
@@ -11,6 +12,15 @@ import           GHC.TypeLits (Nat)
 
 import qualified Data.Dim as Dim
    
+
+-- | A class for data that have a shape.
+class Shape t where
+  type ShapeT t :: *
+  shape :: t -> ShapeT t
+  shRank :: t -> Int
+  shDim :: t -> [Int]
+
+
 
 data Z
 data sh :# e -- dense
