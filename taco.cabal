@@ -26,10 +26,10 @@ library
                        Data.Tensor.Compiler.MultiStage
   build-depends:       base >= 4.7 && < 5
                      , exceptions
-                     , mtl
+                     -- , mtl
                      , vector
-                     , vector-algorithms
-                     , containers
+                     -- , vector-algorithms
+                     -- , containers
   default-language:    Haskell2010
 
 
