@@ -1,4 +1,5 @@
 {-# language DeriveFunctor #-}
+{-# language GADTs #-}
 module Data.Tensor.Compiler.Free where
 
 -- | A free monad given an applicative
@@ -25,22 +26,15 @@ liftF :: Functor f => f a -> Free f a
 liftF k = Free $ Pure <$> k
 
 
-data Lang0 a next =
-    Let a (a -> next) deriving Functor
 
--- let_ x f = liftF (Let x f)
 
--- let2 x y f = let_ x $ \x0 ->
---   let_ y $ \y0 -> f x0 y0
+
+
+
     
-
-
-
 data Lang a next =
     Add a a (a -> next)
   | Konst a (a -> next)
-  -- | C a
-  -- | Done (a -> next)
   deriving (Functor)
 
 instance Applicative (Lang a) where
@@ -96,6 +90,24 @@ pprintEx0 = putStrLn $ pprint ex0
 
 
 
+
+-- | Playground
+
+
+
+-- data Lang0 a z =
+--     Fun1 a (a -> z)
+--   | Fun2 a a (a -> a -> z)
+--   deriving Functor
+
+-- fun1 :: (a -> b) -> a -> Free (Lang0 a) b
+-- fun1 f x = liftF (Fun1 x f)
+
+-- fun2 :: (a -> a -> b) -> a -> a -> Free (Lang0 a) b
+-- fun2 f x y = liftF (Fun2 x y f)
+
+
+-- 
 
 
 -- data Interaction next =
