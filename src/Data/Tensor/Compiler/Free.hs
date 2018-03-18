@@ -33,7 +33,6 @@ data Lang a next =
   deriving (Functor)
 
 instance Applicative (Lang a) where
---   pure = Done
 
 add :: a -> a -> Free (Lang a) a
 add x y = liftF (Add x y id)
@@ -41,29 +40,42 @@ add x y = liftF (Add x y id)
 konst :: Free (Lang a) a
 konst = liftF (Konst id)
 
--- done :: Free (Lang a) a
--- done = liftF (Done id)
 
--- -- konst :: Free (Lang a) a
--- -- konst = liftF (Konst id)
+-- * Interpretation functions
 
-
-
--- calc :: Num a => Free (Lang a) a -> IO a
+-- | Evaluator
+calc :: Num a => Free (Lang a) a -> a
 calc fx = case fx of
-  Pure r -> return r
+  Pure r -> r
   Free (Add x y f) ->
     let z = x + y
     in calc (f z)
   Free (Konst f) -> calc (f 1)
 
+-- | Pretty printer
+pprint :: (Num a, Show a) => Free (Lang a) a -> String
+pprint fx = case fx of
+  Pure _ -> "Done"
+  Free (Add x y f) ->
+    let z = x + y
+        sh = unwords ["x + y =", show z, "\n"]
+    in sh ++ pprint (f z)
+  Free (Konst f) -> pprint (f 1)
 
-calcExample :: IO Int
-calcExample = calc $ do
+-- | Example program
+ex0 :: Free (Lang a) a
+ex0 = do
   a <- konst
   b <- konst  
   add a b
 
+-- | Program 'ex0' interpreted with two different interpreters
+
+calcEx0 :: Int
+calcEx0 = calc ex0
+
+pprintEx0 :: IO ()
+pprintEx0 = putStrLn $ pprint ex0
 
 
 -- data Interaction next =
