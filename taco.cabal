@@ -1,5 +1,5 @@
 name:                taco
-version:             0.3.0.0
+version:             0.4.0.0
 synopsis:            Tensor Algebra COmpiler
 description:         Types and a compiler for tensor expressions.
 homepage:            https://github.com/ocramz/taco-hs#readme
@@ -23,6 +23,7 @@ library
                        Data.Shape.Dynamic
                        Data.Shape.Static
                        Data.Tensor.Compiler.PHOAS
+                       Data.Tensor.Compiler.Free
                        Data.Tensor.Compiler.MultiStage
   build-depends:       base >= 4.7 && < 5
                      , exceptions
