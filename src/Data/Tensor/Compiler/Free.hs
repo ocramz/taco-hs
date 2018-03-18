@@ -25,17 +25,30 @@ liftF :: Functor f => f a -> Free f a
 liftF k = Free $ Pure <$> k
 
 
+data Lang0 a next =
+    Let a (a -> next) deriving Functor
+
+-- let_ x f = liftF (Let x f)
+
+-- let2 x y f = let_ x $ \x0 ->
+--   let_ y $ \y0 -> f x0 y0
+    
+
+
 
 data Lang a next =
     Add a a (a -> next)
   | Konst a (a -> next)
+  -- | C a
   -- | Done (a -> next)
   deriving (Functor)
 
 instance Applicative (Lang a) where
+  
 
-add :: a -> a -> Free (Lang a) a
-add x y = liftF (Add x y id)
+
+(.+.) :: a -> a -> Free (Lang a) a
+x .+. y = liftF (Add x y id)
 
 konst :: a -> Free (Lang a) a
 konst x = liftF (Konst x id)
@@ -52,6 +65,7 @@ calc fx = case fx of
     in calc (f z)
   Free (Konst x f) -> calc (f x)
 
+
 -- | Pretty printer
 pprint :: (Num a, Show a) => Free (Lang a) a -> String
 pprint fx = case fx of
@@ -62,12 +76,13 @@ pprint fx = case fx of
     in sh ++ pprint (f z)
   Free (Konst x f) -> pprint (f x)
 
+
 -- | Example program
 ex0 :: Num a => Free (Lang a) a
 ex0 = do
   a <- konst 1
   b <- konst 2
-  add a b
+  a .+. b
 
 -- | Program 'ex0' interpreted with two different interpreters
 
