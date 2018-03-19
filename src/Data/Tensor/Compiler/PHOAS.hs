@@ -6,7 +6,6 @@ module Data.Tensor.Compiler.PHOAS where
 data Phoas a where
   Var :: a -> Phoas a
   Let :: Phoas a -> (a -> Phoas b) -> Phoas b
-  -- Let :: Phoas a -> (a -> Phoas a) -> Phoas a
 
 -- | Inject a constant into the abstract syntax
 var :: a -> Phoas a
