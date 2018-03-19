@@ -23,17 +23,6 @@ let2_ :: Phoas a -> Phoas b -> (a -> b -> Phoas c) -> Phoas c
 let2_ a b f = let_ a $ \xa ->
   let_ b $ \xb -> f xa xb
 
--- letP_ :: Phoas a -> (Phoas a -> Phoas a) -> Phoas a
--- letP_ e f = let_ e (f . Var)
-
--- letP2_ :: Phoas a -> Phoas a -> (Phoas a -> Phoas a -> Phoas a) -> Phoas a
--- letP2_ a b f = let2_ a b (\x y -> f (Var x) (Var y))
-
-
--- instance Show a => Show (Phoas a) where
---   show e = case e of
---     Var x -> show x
---     -- Let e f -> unwords
 
 
 
@@ -83,7 +72,7 @@ eval expr = case expr of
 
 
 
-
+-- | PHOAS-with-multiple-interpretations
 
 data P v a where
   Var2 :: v a -> P v a
@@ -111,7 +100,7 @@ eval2' = fst . go (("x" ++) . show <$> [1..])
         (eStr, names') = go names e
         (fStr, names'') = go names' (f . Const $ name)
       in
-        ("let " ++ name ++ " = (" ++ eStr ++ ") in " ++ fStr, names'')
+        ("let " ++ name ++ " = {" ++ eStr ++ "} in " ++ fStr, names'')
     go names (Plus a b) =
       let
         (aStr, names') = go names a
@@ -126,15 +115,13 @@ treeE2 n = Let2 (treeE2 (n - 1)) $ \a -> Var2 a `Plus` Var2 a
 
 
 
+
+
+
+
+
+
 -- * A possible abstract syntax
-
-
-
-
-
-
-
-
 
 
 -- data Index i where

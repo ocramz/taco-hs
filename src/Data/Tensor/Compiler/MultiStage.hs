@@ -1,13 +1,14 @@
 {-# language GADTs #-}
-module Data.Tensor.Compiler.MultiStage where
-
 {-|
 * inner product of two vectors
 * matrix-vector action
 * matrix-matrix product
 -}
+module Data.Tensor.Compiler.MultiStage where
 
--- | "User-facing" syntax
+
+
+-- | User-facing syntax
 data E1 a =
     K1 a
   | Dot a a -- (E1 a) (E1 a)
@@ -24,14 +25,13 @@ evalE1 expr = case expr of
 -- dot :: a -> a -> E1 a
 -- dot = Dot
 
-
 -- | Internal representation
 data E2 a =
     K2 a
   | ZipWith BinOp (E2 a) (E2 a)
   | Fold BinOp (E2 a) deriving (Eq, Show)
 
--- | Evaluate the internal representation into a concrete result. NB: the internal and returned type, [b], is constrained by the evaluation functions `zipWith`/`foldr`. In general this would be an opaque tensor data structure
+-- | Evaluate the internal representation into a concrete result. NB: the internal and returned type, [b], is constrained by the evaluation functions `zipWith`/`foldr`. In general this would be a tensor data structure rather than a list.
 evalE2 :: Fractional b => b -> E2 [b] -> [b]
 evalE2 z expr = case expr of
   K2 x -> x
@@ -49,8 +49,6 @@ mulE2 a b = ZipWith Mul (k2 a) (k2 b)
 -- | Chained E1 -> E2 evaluation
 evalE :: Fractional b => b -> E1 [b] -> [b]
 evalE z = evalE2 z . evalE1
-
-
 
 -- data UnOp = Sqrt deriving (Eq, Show)
 data BinOp = Add | Sub | Mul | Div deriving (Eq, Show)

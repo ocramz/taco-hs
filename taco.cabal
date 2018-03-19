@@ -17,7 +17,7 @@ library
   hs-source-dirs:      src
   ghc-options:         -Wall
   exposed-modules:     Data.Tensor.Compiler
-  other-modules:       Data.Tensor
+                       Data.Tensor
                        Data.Shape
                        Data.Dim
                        Data.Shape.Dynamic
@@ -25,6 +25,7 @@ library
                        Data.Tensor.Compiler.PHOAS
                        Data.Tensor.Compiler.Free
                        Data.Tensor.Compiler.MultiStage
+  -- other-modules:
   build-depends:       base >= 4.7 && < 5
                      , exceptions
                      -- , mtl
