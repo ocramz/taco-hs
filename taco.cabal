@@ -18,6 +18,7 @@ library
   ghc-options:         -Wall
   exposed-modules:     Data.Tensor.Compiler
                        Data.Tensor
+                       Data.Tensor.TwoParameter
                        Data.Shape
                        Data.Dim
                        Data.Shape.Dynamic
@@ -25,6 +26,7 @@ library
                        Data.Tensor.Compiler.PHOAS
                        Data.Tensor.Compiler.Free
                        Data.Tensor.Compiler.MultiStage
+                       Language.Taco
   -- other-modules:
   build-depends:       base >= 4.7 && < 5
                      , exceptions

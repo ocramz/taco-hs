@@ -46,10 +46,10 @@ data Sh sh where
 -- data Sized (n :: [Dimz Nat]) t = Sized t   -- this doesn't work without TypeInType
 
 -- | 
-data Sized n c t = Sized (Sh n) (c t)
+data Sized n c t = Sized (Sh n) (c t) deriving (Show)
 
-t0 :: Sized '[D 3] [] Int
-t0 = Sized (Dim.Dd 3 `D` Z) [1,2,3]
+t0 :: Sized '[D 3, D 2] [] Int
+t0 = Sized (Dim.Dd 3 `D` (Dim.Dd 2 `D` Z)) [1 .. 6]
     
   
   

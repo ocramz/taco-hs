@@ -46,6 +46,10 @@ instance Shape.Shape (Tensor (Sh i) a) where
   shDim = dim
 
 
+
+
+
+
 -- | The 'Tensor' type with statically known shape. Tensor data entries are stored as one single array
 data Tensor i a where
   Tensor :: Sh i -> V.Vector a -> Tensor (Sh i) a 
@@ -91,6 +95,15 @@ rank (Tensor sh _) = Shape.rank sh
 -- | Tensor dimensions
 dim :: Tensor i a -> [Int]
 dim (Tensor sh _) = Shape.dim sh
+
+
+
+
+
+
+
+
+
 
 
 
