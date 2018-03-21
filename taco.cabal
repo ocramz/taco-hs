@@ -24,6 +24,7 @@ library
                        Data.Shape.Types
                        Data.Dim
                        Data.Dim.Named
+                       Data.Dim.Named.Generic
                        Data.Shape.Dynamic
                        Data.Shape.Dynamic.Named
                        Data.Shape.Static

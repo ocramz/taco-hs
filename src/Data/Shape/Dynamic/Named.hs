@@ -3,18 +3,37 @@ module Data.Shape.Dynamic.Named where
 import Data.Foldable (foldl')
 
 import qualified Data.Dim.Named as Dim
+import qualified Data.Dim.Named.Generic as DG
 
-newtype ShDn n i =
+newtype ShDn n v i =
   ShDn {
-    unShDn :: [Either (Dim.Ddn i n) (Dim.Sdn i n)]
+    unShDn :: [Either (DG.Ddn n i) (DG.Sdn n v i)]
     } deriving (Eq, Show)
 
-mkDenseShDn :: Foldable t => t (n, i) -> ShDn n i
+mkDenseShDn :: Foldable t => t (i, n) -> ShDn n v i
 mkDenseShDn xss = ShDn $ foldr insf [] xss  where
-  insf (x, ixname) acc = Left (Dim.Ddn x ixname) : acc
+  insf (x, ixname) acc = Left (DG.Ddn x ixname) : acc
 
-rank :: ShDn n i -> Int
+rank :: ShDn n v i -> Int
 rank = length . unShDn
 
-dim :: (Num b, Integral a) => ShDn a n2 -> [b]
-dim sh = fromIntegral <$> foldl' (\d s -> Dim.dim s : d) [] (unShDn sh)
+dim :: (Num b, Integral i) => ShDn n v i -> [b]
+dim sh = fromIntegral <$> foldl' (\d s -> DG.dim s : d) [] (unShDn sh)
+
+
+
+
+-- newtype ShDn n i =
+--   ShDn {
+--     unShDn :: [Either (Dim.Ddn i n) (Dim.Sdn i n)]
+--     } deriving (Eq, Show)
+
+-- mkDenseShDn :: Foldable t => t (n, i) -> ShDn n i
+-- mkDenseShDn xss = ShDn $ foldr insf [] xss  where
+--   insf (x, ixname) acc = Left (Dim.Ddn x ixname) : acc
+
+-- rank :: ShDn n i -> Int
+-- rank = length . unShDn
+
+-- dim :: (Num b, Integral a) => ShDn a n2 -> [b]
+-- dim sh = fromIntegral <$> foldl' (\d s -> Dim.dim s : d) [] (unShDn sh)
