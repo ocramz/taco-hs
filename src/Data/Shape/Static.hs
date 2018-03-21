@@ -29,10 +29,10 @@ infixr 5 :#
 infixr 5 :.
 
 
-data D (n :: Nat)
-data S (n :: Nat)
+data D (n :: Nat) 
+data S (n :: Nat) 
 data family Dimz d
-data instance Dimz (D n)
+data instance Dimz (D n) 
 data instance Dimz (S n)
 
 -- | A shape type with statically typed dimensions  
@@ -43,7 +43,7 @@ data Sh sh where
   -- | Constructor for a sparse dimension
   S :: KnownNat n => Dim.Sd Int32 -> Sh sh -> Sh (S n ': sh)
 
--- data Sized (n :: [Dimz Nat]) t = Sized t   -- this doesn't work without TypeInType
+-- data Sized' (n :: '[Dimz Nat]) t = Sized' t   -- this doesn't work without TypeInType
 
 -- | 
 data Sized n c t = Sized (Sh n) (c t) deriving (Show)

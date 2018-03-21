@@ -1,5 +1,3 @@
-{-# language GADTs, TypeOperators #-}
-{-# language TypeFamilies #-}
 module Data.Dim where
 
 import Data.Vector.Unboxed as V
@@ -7,9 +5,9 @@ import Data.Vector.Unboxed as V
 
 -- * Dimension metadata
 
-data family Dim a
-data instance Dim (Dd i)
-data instance Dim (Sd i)
+-- data family Dim a
+-- data instance Dim (Dd i)
+-- data instance Dim (Sd i)
 
 -- | To define a /dense/ dimension we only need the dimensionality parameter
 newtype Dd i = Dd { dDim :: i } deriving (Eq, Show)
@@ -21,9 +19,9 @@ data Sd i = Sd {
       -- | Index array (indices of nonzero entries)
     , sIdx :: V.Vector i
       -- | Size of the tensor along this dimension
-    , sDim :: i }
-  deriving (Eq, Show)
+    , sDim :: i } deriving (Eq, Show)
 
+ 
 -- | A tensor dimension can be either dense or sparse.
 --
 -- Example: the CSR format is /dense/ in the first index (rows) and /sparse/ in the second index (columns)

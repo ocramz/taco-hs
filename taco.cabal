@@ -20,7 +20,10 @@ library
                        Data.Tensor
                        Data.Tensor.TwoParameter
                        Data.Shape
+                       Data.Shape.Named
+                       Data.Shape.Types
                        Data.Dim
+                       Data.Dim.Named
                        Data.Shape.Dynamic
                        Data.Shape.Static
                        Data.Tensor.Compiler.PHOAS
