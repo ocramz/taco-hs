@@ -21,38 +21,47 @@ import qualified Data.Vector as V
 import Control.Applicative
 
 
-import qualified Data.Shape as Shape (Shape(..), dim, rank)
-import Data.Shape.Types (Z, (:#), (:.))
+import qualified Data.Shape as Shape (dim, rank)
+import Data.Shape.Types (Shape(..), shape, shRank, shDim, Z, (:#), (:.))
 import Data.Shape (Sh(..), 
                    D1, D2, CSR, COO, mkD2, mkCSR, mkCOO)
-import qualified Data.Shape.Dynamic as ShDyn       
+import qualified Data.Shape.Dynamic as ShD
+import qualified Data.Shape.Dynamic.Named as ShDn
 import qualified Data.Dim as Dim
 
 
 
 -- | A tensor type with dimensions only known at runtime
-data Tenzor i a = Tenzor {tzShape :: ShDyn.ShD i, tzData :: V.Vector a }
+data Tenzor i a = Tenzor {tzShape :: ShD.ShD i, tzData :: V.Vector a }
 
-instance Integral i => Shape.Shape (Tenzor i a) where
-  type ShapeT (Tenzor i a) = ShDyn.ShD i
+instance Integral i => Shape (Tenzor i a) where
+  type ShapeT (Tenzor i a) = ShD.ShD i 
   shape = tzShape 
-  shRank = ShDyn.rank . Shape.shape
-  shDim = ShDyn.dim . Shape.shape
-
-instance Shape.Shape (Tensor (Sh i) a) where
-  type ShapeT (Tensor (Sh i) a) = Sh i
-  shape = tshape 
-  shRank = rank
-  shDim = dim
+  shRank = ShD.rank . shape
+  shDim = ShD.dim . shape
 
 
+-- | A tensor type with labeled dimensions only known at runtime
+data Tn n i a = Tn {tznSh :: ShDn.ShDn i n, tznData :: V.Vector a}
 
+instance Integral i => Shape (Tn n i a) where
+  type ShapeT (Tn n i a) = ShDn.ShDn i n
+  shape = tznSh
+  shRank = ShDn.rank . shape
+  shDim = ShDn.dim . shape
+  
 
 
 
 -- | The 'Tensor' type with statically known shape. Tensor data entries are stored as one single array
 data Tensor i a where
-  Tensor :: Sh i -> V.Vector a -> Tensor (Sh i) a 
+  Tensor :: Sh i -> V.Vector a -> Tensor (Sh i) a
+
+instance Shape (Tensor (Sh i) a) where
+  type ShapeT (Tensor (Sh i) a) = Sh i
+  shape = tshape 
+  shRank = rank
+  shDim = dim  
 
 -- | Construct a tensor given a shape and a vector of entries
 mkT :: Sh i -> V.Vector a -> Tensor (Sh i) a

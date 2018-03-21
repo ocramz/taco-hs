@@ -14,12 +14,12 @@ import qualified Data.Dim as Dim
 import Data.Shape.Types   
 
 
--- | A class for data that have a shape.
-class Shape t where
-  type ShapeT t :: *
-  shape :: t -> ShapeT t
-  shRank :: t -> Int
-  shDim :: t -> [Int]
+-- -- | A class for data that have a shape.
+-- class Shape t where
+--   type ShapeT t :: *
+--   shape :: t -> ShapeT t
+--   shRank :: t -> Int
+--   shDim :: t -> [Int]
 
 -- | A statically-typed tensor shape parameter that supports both sparse and dense dimensions.
 -- Dimensions are indexed with 'Int32' indices, which should be enough for most applications.

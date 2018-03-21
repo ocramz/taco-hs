@@ -25,6 +25,7 @@ library
                        Data.Dim
                        Data.Dim.Named
                        Data.Shape.Dynamic
+                       Data.Shape.Dynamic.Named
                        Data.Shape.Static
                        Data.Tensor.Compiler.PHOAS
                        Data.Tensor.Compiler.Free

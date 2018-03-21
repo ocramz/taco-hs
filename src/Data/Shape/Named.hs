@@ -17,8 +17,8 @@ data Sh n sh where
 
 instance Show n => Show (Sh n sh) where
   show Z = ""
-  show (D (Dim.Ddn m ixn) sh) = unwords [show ixn, show m, show sh]
-  show (S (Dim.Sdn _ ix nd ixn) sh) = show ixn <> showSparse ix nd <> show sh where
+  show (D (Dim.Ddn m ixn) sh) = unwords ["D", show ixn, show m, show sh]
+  show (S (Dim.Sdn _ ix nd ixn) sh) = "S " <> show ixn <> showSparse ix nd <> show sh where
     showSparse ixx nn = show (VU.length ixx, nn)
   
 ixes :: Sh n sh -> [n]
@@ -39,8 +39,8 @@ elemIx i sh = i `elem` ixes sh
 data Ix = I | J | K deriving (Eq, Show)
 
 -- ix0 :: Int32 -> Sh Char (Z :# Int32)
-ix0 m ix = D (Dim.Ddn m ix) Z
+ix0 = D (Dim.Ddn 2 I ) Z
 
 -- ix1 :: Int32 -> Int32 -> Sh Char ((Z :# Int32) :# Int32)
--- ix1 m n = D 'i' (Dim.Dd m) (D 'j' (Dim.Dd n) Z)
+ix1 = D (Dim.Ddn 2 I) (D (Dim.Ddn 3 J) Z)
 

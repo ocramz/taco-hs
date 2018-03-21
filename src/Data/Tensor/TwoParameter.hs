@@ -3,9 +3,9 @@ module Data.Tensor.TwoParameter where
 
 import qualified Data.Vector as V
 
-import qualified Data.Shape as Shape (Shape(..), dim, rank)
-import Data.Shape.Types
-import Data.Shape (Sh(..), D1, D2)
+import qualified Data.Shape as Shape (dim, rank)
+-- import Data.Shape.Types
+import Data.Shape.Named (Sh(..))
 import qualified Data.Dim as Dim
 
 -- | Tensor with separate co- and contra-variant index parameters
@@ -13,10 +13,10 @@ import qualified Data.Dim as Dim
 -- | Covariant indices, contravariant indices, container type, element type
 data Tensor2 i j v e where
   T2 ::    
-       Sh i                    
-    -> Sh i                    
+       Sh n i                    
+    -> Sh n i                    
     -> v e  
-    -> Tensor2 (Sh i) (Sh i) v e
+    -> Tensor2 (Sh n i) (Sh n i) v e
 
 coIx :: Tensor2 i j v e -> i
 coIx (T2 ix _ _) = ix
@@ -24,10 +24,10 @@ coIx (T2 ix _ _) = ix
 contraIx :: Tensor2 i j v e -> j
 contraIx (T2 _ ix _) = ix
 
--- | Can the two tensor operands be contracted?
-contractible :: (Eq i, Eq j) => Tensor2 i j v e1 -> Tensor2 j i v e2 -> Bool
-contractible t1 t2 =
-  coIx t1 == contraIx t2 || contraIx t1 == coIx t2
+-- -- | Can the two tensor operands be contracted?
+-- contractible :: (Eq i, Eq j) => Tensor2 i j v e1 -> Tensor2 j i v e2 -> Bool
+-- contractible t1 t2 =
+--   coIx t1 == contraIx t2 || contraIx t1 == coIx t2
 
 
 {-

@@ -24,3 +24,6 @@ data Sdn n i = Sdn {
     , snIx :: n
     } deriving (Eq, Show)
 
+dim :: Either (Ddn n1 c) (Sdn n2 c) -> c
+dim = either dnDim snDim
+
