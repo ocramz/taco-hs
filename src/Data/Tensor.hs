@@ -1,7 +1,7 @@
 {-# language GADTs #-}
 -- {-# language DeriveFunctor #-}
 {-# language TypeOperators #-}
--- {-# language PackageImports #-}
+{-# language PackageImports #-}
 {-# language TypeFamilies #-}
 {-# language FlexibleInstances #-}
 module Data.Tensor
@@ -22,10 +22,10 @@ module Data.Tensor
 import Control.Applicative
 import qualified Data.Set as S
 import qualified Data.Map as M
-
+import "exceptions" Control.Monad.Catch (MonadThrow(..))
 import Data.Shape.Types (Shape(..), rank, dim, Z, (:#), (:.))
-import Data.Shape.Dynamic.Named (Sh(..), ixLabels)
-import qualified Data.Dim.Generic (Ddn(..), Sdn(..))
+import Data.Shape.Dynamic.Named -- (Sh(..), DimE, shDiff, ixLabels)
+import qualified Data.Dim.Generic (Dd(..), Sd(..))
 
 
 -- | Covariant indices, contravariant indices, container type, element type
@@ -52,21 +52,27 @@ contraIx :: Tensor i j v e -> j
 contraIx (Tensor _ ix _) = ix
 
 -- | Two tensors can be contracted if some covariant indices in the first appear in the contravariant indices of the second.
-contractionIndices :: Ord n =>
-                      Tensor (Sh n v i) j v e
-                   -> Tensor i (Sh n v i) v e
-                   -> S.Set n
-contractionIndices t1 t2 =
-  S.intersection (ixLabels $ coIx t1) (ixLabels $ contraIx t2)
+-- contractionIndices f t1 t2 = shDiff f (coIx t1) (contraIx t2)
 
 
--- | The outer product of two tensors is defined over the non-empty intersection of the contravariant indices of the first with the covariant ones of the second.
-outerProdIndices :: Ord n =>
-                      Tensor i (Sh n v j) v e
-                   -> Tensor (Sh n v i) j v e
-                   -> S.Set n
-outerProdIndices t1 t2 =
-  S.intersection (ixLabels $ contraIx t1) (ixLabels $ coIx t2)
+
+
+-- contractionIndices :: Ord n =>
+--                       Tensor (Sh n v i) j v e
+--                    -> Tensor i (Sh n v i) v e
+--                    -> S.Set n
+-- contractionIndices t1 t2 =
+--   S.intersection (ixLabels $ coIx t1) (ixLabels $ contraIx t2)
+
+
+-- -- | The outer product of two tensors is defined over the non-empty intersection of the contravariant indices of the first with the covariant ones of the second.
+-- outerProdIndices :: Ord n =>
+--                       Tensor i (Sh n v j) v e
+--                    -> Tensor (Sh n v i) j v e
+--                    -> S.Set n
+-- outerProdIndices t1 t2 =
+--   S.intersection (ixLabels $ contraIx t1) (ixLabels $ coIx t2)
+
 
 
 

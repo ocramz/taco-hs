@@ -25,11 +25,11 @@ library
                        Data.Dim
                        Data.Dim.Generic
                        Data.Shape
-                       Data.Shape.Named
                        Data.Shape.Types                       
                        Data.Shape.Dynamic
                        Data.Shape.Dynamic.Named
                        Data.Shape.Static
+                       Data.Tensor.Exception
   -- other-modules:
   build-depends:       base >= 4.7 && < 5
                      , containers
