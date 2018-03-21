@@ -16,43 +16,57 @@ module Data.Tensor
   -- )
   where
 
-import qualified Data.Vector as V
+-- import qualified Data.Vector as V
 -- import qualified Data.Vector.Unboxed as VU
 -- import Data.Int (Int32)
 import Control.Applicative
+import qualified Data.Set as S
 
-
--- import qualified Data.Shape as Shape (dim, rank)
 import Data.Shape.Types (Shape(..), rank, dim, Z, (:#), (:.))
--- import Data.Shape (Sh(..), 
---                    D1, D2, CSR, COO, mkD2, mkCSR, mkCOO)
--- import qualified Data.Shape.Dynamic as ShD
-import Data.Shape.Dynamic.Named 
--- import qualified Data.Dim as Dim
+import Data.Shape.Dynamic.Named (Sh(..), ixLabels)
+import qualified Data.Dim.Generic (Ddn(..), Sdn(..))
 
 
 -- | Covariant indices, contravariant indices, container type, element type
 data Tensor i j v e where
   Tensor ::    
-       ShDn n v i                    
-    -> ShDn n v i                    
+       Sh n v i                    
+    -> Sh n v i                    
     -> v e  
-    -> Tensor (ShDn n v i) (ShDn n v i) v e
+    -> Tensor (Sh n v i) (Sh n v i) v e    
+
+mkTensor ::
+  Sh n v i -> Sh n v i -> v e -> Tensor (Sh n v i) (Sh n v i) v e
+mkTensor = Tensor
 
 instance Functor v => Functor (Tensor i j v) where
   fmap f (Tensor shi shj v) = Tensor shi shj (f <$> v)
 
+-- | Covariant indices
 coIx :: Tensor i j v e -> i
 coIx (Tensor ix _ _) = ix
 
+-- | Contravariant indices
 contraIx :: Tensor i j v e -> j
 contraIx (Tensor _ ix _) = ix
 
+-- | Two tensors can be contracted if some covariant indices in the first appear in the contravariant indices of the second.
+contractionIndices :: Ord n =>
+                      Tensor (Sh n v i) j v e
+                   -> Tensor i (Sh n v i) v e
+                   -> S.Set n
+contractionIndices t1 t2 =
+  S.intersection (ixLabels $ coIx t1) (ixLabels $ contraIx t2)
 
--- -- | Can the two tensor operands be contracted?
--- contractible :: (Eq i, Eq j) => Tensor2 i j v e1 -> Tensor2 j i v e2 -> Bool
--- contractible t1 t2 =
---   coIx t1 == contraIx t2 || contraIx t1 == coIx t2
+
+-- | The outer product of two tensors is defined over the non-empty intersection of the contravariant indices of the first with the covariant ones of the second.
+outerProdIndices :: Ord n =>
+                      Tensor i (Sh n v j) v e
+                   -> Tensor (Sh n v i) j v e
+                   -> S.Set n
+outerProdIndices t1 t2 =
+  S.intersection (ixLabels $ contraIx t1) (ixLabels $ coIx t2)
+
 
 
 {-

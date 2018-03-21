@@ -1,33 +1,34 @@
 module Data.Shape.Dynamic.Named where
 
 import Data.Foldable (foldl')
+import qualified Data.Map.Lazy as M
+import qualified Data.Set as S
 
-import qualified Data.Dim.Named as Dim
-import qualified Data.Dim.Named.Generic as DG
+-- import qualified Data.Dim.Named as Dim
+import qualified Data.Dim.Generic as DG
 import Data.Shape.Types
 
-newtype ShDn n v i =
-  ShDn {
-    unShDn :: [Either (DG.Ddn n i) (DG.Sdn n v i)]
+
+newtype Sh n v i =
+  Sh {
+    unShDn :: M.Map n (Either (DG.Ddn i) (DG.Sdn v i))
     } deriving (Eq, Show)
 
 -- | Construct a shape given a list of either dense of sparse dimensions
-mkShDn :: Foldable t =>
-     t (Either (DG.Ddn n i) (DG.Sdn n v i)) -> ShDn n v i
-mkShDn xss = ShDn $ foldr (:) [] xss
+mkShDn :: Ord n => 
+     [(n, Either (DG.Ddn i) (DG.Sdn v i))] -> Sh n v i
+mkShDn = Sh . M.fromList
 
-mkDenseShDn :: Foldable t => t (i, n) -> ShDn n v i
-mkDenseShDn xss = ShDn $ foldr insf [] xss  where
-  insf (x, ixname) acc = Left (DG.Ddn x ixname) : acc
+ixLabels :: Ord n => Sh n v i -> S.Set n
+ixLabels = S.fromList . M.keys . unShDn
 
-rank_ :: ShDn n v i -> Int
+rank_ :: Sh n v i -> Int
 rank_ = length . unShDn
 
-dim_ :: (Num b, Integral i) => ShDn n v i -> [b]
-dim_ sh = fromIntegral <$> foldl' (\d s -> DG.dim s : d) [] (unShDn sh)
+dim_ :: Integral i => Sh n v i -> [Int]
+dim_ sh = fromIntegral . DG.dim . snd <$> M.toList (unShDn sh)
 
-
-instance Integral i => Shape (ShDn n v i) where
+instance Integral i => Shape (Sh n v i) where
   rank = rank_
   dim = dim_
 

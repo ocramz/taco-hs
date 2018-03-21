@@ -16,24 +16,23 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   ghc-options:         -Wall
-  exposed-modules:     Data.Tensor.Compiler
+  exposed-modules:     Language.Taco
+                       Data.Tensor.Compiler
                        Data.Tensor
-                       -- Data.Tensor.TwoParameter
+                       Data.Tensor.Compiler.PHOAS
+                       Data.Tensor.Compiler.Free
+                       Data.Tensor.Compiler.MultiStage                       
+                       Data.Dim
+                       Data.Dim.Generic
                        Data.Shape
                        Data.Shape.Named
-                       Data.Shape.Types
-                       Data.Dim
-                       Data.Dim.Named
-                       Data.Dim.Named.Generic
+                       Data.Shape.Types                       
                        Data.Shape.Dynamic
                        Data.Shape.Dynamic.Named
                        Data.Shape.Static
-                       Data.Tensor.Compiler.PHOAS
-                       Data.Tensor.Compiler.Free
-                       Data.Tensor.Compiler.MultiStage
-                       Language.Taco
   -- other-modules:
   build-depends:       base >= 4.7 && < 5
+                     , containers
                      , exceptions
                      -- , mtl
                      , vector
