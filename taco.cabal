@@ -18,7 +18,7 @@ library
   ghc-options:         -Wall
   exposed-modules:     Data.Tensor.Compiler
                        Data.Tensor
-                       Data.Tensor.TwoParameter
+                       -- Data.Tensor.TwoParameter
                        Data.Shape
                        Data.Shape.Named
                        Data.Shape.Types

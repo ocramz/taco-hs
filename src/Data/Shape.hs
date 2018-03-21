@@ -14,12 +14,6 @@ import qualified Data.Dim as Dim
 import Data.Shape.Types   
 
 
--- -- | A class for data that have a shape.
--- class Shape t where
---   type ShapeT t :: *
---   shape :: t -> ShapeT t
---   shRank :: t -> Int
---   shDim :: t -> [Int]
 
 -- | A statically-typed tensor shape parameter that supports both sparse and dense dimensions.
 -- Dimensions are indexed with 'Int32' indices, which should be enough for most applications.
@@ -31,7 +25,7 @@ data Sh sh where
   -- | Constructor for a dense dimension  
   D :: Sh sh -> Dim.Dd Int32 -> Sh (sh :# Int32)
   -- | Constructor for a sparse dimension 
-  S :: Sh sh -> Dim.Sd Int32 -> Sh (sh :. Int32) 
+  S :: Sh sh -> Dim.Sd Int32 -> Sh (sh :. Int32)
 
 type D1 = Z :# Int32
 type S1 = Z :. Int32
@@ -52,16 +46,16 @@ instance Eq (Sh sh) where
   (sh `S` s) == (sh2 `S` s2) = s == s2 && (sh == sh2)
 
 -- | Rank of a shape (i.e. number of dimensions)
-rank :: Sh sh -> Int
-rank Z = 0
-rank (D sh _) = 1 + rank sh
-rank (S sh _) = 1 + rank sh
+rank_ :: Sh sh -> Int
+rank_ Z = 0
+rank_ (D sh _) = 1 + rank_ sh
+rank_ (S sh _) = 1 + rank_ sh
 
 -- | Dimension of a shape (i.e. list of dimension sizes)
-dim :: Sh sh -> [Int]
-dim Z = []
-dim (D sh (Dim.Dd m)) = fromIntegral m : dim sh
-dim (S sh (Dim.Sd _ _ m)) = fromIntegral m : dim sh
+dim_ :: Sh sh -> [Int]
+dim_ Z = []
+dim_ (D sh (Dim.Dd m)) = fromIntegral m : dim_ sh
+dim_ (S sh (Dim.Sd _ _ m)) = fromIntegral m : dim_ sh
 
 
 
