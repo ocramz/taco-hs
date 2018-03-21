@@ -28,6 +28,21 @@ rank_ = length . unShDn
 dim_ :: Integral i => Sh n v i -> [Int]
 dim_ sh = fromIntegral . DG.dim . snd <$> M.toList (unShDn sh)
 
+
+-- | Combinator that acts on the intersection of two index sets. If all matching indices have same dimensions, return some function of the corresponding dimension pair.
+shDiff :: (Eq a, Applicative f, Ord k) =>
+     (Maybe
+        (Either (DG.Ddn a) (DG.Sdn v a), Either (DG.Ddn a) (DG.Sdn v a))
+      -> f b)
+     -> Sh k v a
+     -> Sh k v a
+       -> f (M.Map k b)
+shDiff g sh1 sh2 =
+  traverse g $ M.intersectionWith f (unShDn sh1) (unShDn sh2) where
+    f a b | DG.dim a == DG.dim b = Just (a, b)
+          | otherwise = Nothing
+
+
 instance Integral i => Shape (Sh n v i) where
   rank = rank_
   dim = dim_

@@ -21,6 +21,7 @@ module Data.Tensor
 -- import Data.Int (Int32)
 import Control.Applicative
 import qualified Data.Set as S
+import qualified Data.Map as M
 
 import Data.Shape.Types (Shape(..), rank, dim, Z, (:#), (:.))
 import Data.Shape.Dynamic.Named (Sh(..), ixLabels)
@@ -66,6 +67,7 @@ outerProdIndices :: Ord n =>
                    -> S.Set n
 outerProdIndices t1 t2 =
   S.intersection (ixLabels $ contraIx t1) (ixLabels $ coIx t2)
+
 
 
 
