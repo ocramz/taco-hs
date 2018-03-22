@@ -1,7 +1,7 @@
 {-# language PackageImports #-}
 {-|
 Module      : Data.Shape.Dynamic.Named
-Description : Short description
+Description : Labelled tensor shape (i.e. index) data
 Copyright   : (c) Marco Zocca, 2018
 License     : GPL-3
 Maintainer  : zocca.marco gmail

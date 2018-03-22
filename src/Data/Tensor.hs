@@ -5,6 +5,18 @@
 {-# language TypeFamilies #-}
 {-# language FlexibleInstances #-}
 -- {-# language RankNTypes #-}
+{-|
+Module      : Data.Tensor
+Description : Tensor data structure
+Copyright   : (c) Marco Zocca, 2018
+License     : GPL-3
+Maintainer  : zocca.marco gmail
+Stability   : experimental
+Portability : POSIX
+
+Here is a longer description of this module, containing some
+commentary with @some markup@.
+-}
 module Data.Tensor
   -- (
   -- -- * Tensor type
