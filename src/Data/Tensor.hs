@@ -22,8 +22,13 @@ A 'Tensor' is parametrized by its covariant and contravariant index sets and by 
 module Data.Tensor
   (
   -- * Tensor 
-  Tensor(..), mkTensor, mkTensorUnsafe,
-  nnz, tdim,
+  Tensor(..),
+  -- ** Constructors
+  mkTensor, mkTensorUnsafe,
+  -- -- *** Accessors
+  -- coIx, contraIx,
+  -- ** Properties
+  nnz, tdim, trank,
   -- ** Tensor operations
   contractionIndices, outerProdIndices, 
   -- * Shape 
@@ -60,13 +65,18 @@ instance (Show i, Show j) => Show (Tensor i j v e) where
     unwords ["covariant:", show shco,
              "contravariant:", show shcontra]
 
--- | Nonzeros in the tensor data
+-- | Number of nonzero entries in the tensor data
 nnz :: Foldable v => Tensor i j v e -> Int
 nnz (Tensor _ _ v) = length v
 
--- | Tensor dimensions
+-- | Tensor dimensions: (covariant, contravariant)
 tdim :: (Shape i, Shape j) => Tensor i j v e -> ([Int], [Int])
 tdim = dim . coIx &&& dim . contraIx
+
+-- | Tensor rank: (covariant, contravariant)
+trank :: (Shape i, Shape j) => Tensor i j v e -> (Int, Int)
+trank t = (length co, length contra) where
+  (co, contra) = tdim t
 
 -- | Safe tensor construction; for now it only compares the length of the entry vector with the upper bound on the tensor size (i.e. considering all dimensions as dense). Can be refined by computing effective nonzeros along sparse dimensions
 mkTensor :: (Integral i, Foldable v, MonadThrow m) =>
@@ -87,11 +97,11 @@ instance Functor v => Functor (Tensor i j v) where
   fmap f (Tensor shi shj v) = Tensor shi shj (f <$> v)
 
 -- | Covariant indices
-coIx :: Tensor i j v e -> i
+coIx :: Tensor co contra v e -> co
 coIx (Tensor ix _ _) = ix
 
 -- | Contravariant indices
-contraIx :: Tensor i j v e -> j
+contraIx :: Tensor co contra v e -> contra
 contraIx (Tensor _ ix _) = ix
 
 -- | Two tensors can be contracted if some covariant indices in the first appear in the contravariant indices of the second.
