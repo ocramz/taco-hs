@@ -41,7 +41,6 @@ instance (Show n, Show i, Show (v i)) => Show (Sh n v i) where
 mkSh :: Ord n => [(n, DimE v i)] -> Sh n v i
 mkSh = Sh . M.fromList
 
-
 rank_ :: Sh n v i -> Int
 rank_ = length . unShDn
 
@@ -67,22 +66,3 @@ instance Integral i => Shape (Sh n v i) where
   dim = dim_
 
 
-
-
-
-
-
--- newtype ShDn n i =
---   ShDn {
---     unShDn :: [Either (Dim.Ddn i n) (Dim.Sdn i n)]
---     } deriving (Eq, Show)
-
--- mkDenseShDn :: Foldable t => t (n, i) -> ShDn n i
--- mkDenseShDn xss = ShDn $ foldr insf [] xss  where
---   insf (x, ixname) acc = Left (Dim.Ddn x ixname) : acc
-
--- rank :: ShDn n i -> Int
--- rank = length . unShDn
-
--- dim :: (Num b, Integral a) => ShDn a n2 -> [b]
--- dim sh = fromIntegral <$> foldl' (\d s -> Dim.dim s : d) [] (unShDn sh)
