@@ -4,7 +4,7 @@
 {-# language PackageImports #-}
 {-# language TypeFamilies #-}
 {-# language FlexibleInstances #-}
-{-# language RankNTypes #-}
+-- {-# language RankNTypes #-}
 module Data.Tensor
   -- (
   -- -- * Tensor type
@@ -39,17 +39,16 @@ data Tensor i j v e where
     -> Tensor (Sh n v i) (Sh n v i) v e
 
 instance (Show i, Show j) => Show (Tensor i j v e) where
-  show (Tensor shco shcontra vdat) =
+  show (Tensor shco shcontra _) =
     unwords ["covariant:", show shco,
              "contravariant:", show shcontra]
 
 nnz :: Foldable v => Tensor i j v e -> Int
 nnz (Tensor _ _ v) = length v
 
-tdim :: (Shape i, Shape j) => Tensor i j v e -> (Int, Int)
-tdim = sd . coIx &&& sd . contraIx where
-  sd :: forall x . Shape x => x -> Int
-  sd = sum . dim
+tdim :: (Shape i, Shape j) => Tensor i j v e -> ([Int], [Int])
+tdim = dim . coIx &&& dim . contraIx where
+
 
 mkTensor ::
   Sh n v i -> Sh n v i -> v e -> Tensor (Sh n v i) (Sh n v i) v e
