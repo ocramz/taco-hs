@@ -25,7 +25,7 @@ import qualified Data.Dim.Generic as DG
 import Data.Shape.Types
 import Data.Tensor.Exception
 
--- | Shorthand for Either .. 
+-- | Tensor dimensions can be either dense or sparse
 type DimE v i = Either (DG.Dd i) (DG.Sd v i)
 
 -- | A shape Sh is a finite map from indices to either a dense or a sparse dimension

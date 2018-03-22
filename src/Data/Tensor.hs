@@ -14,18 +14,22 @@ Maintainer  : zocca.marco gmail
 Stability   : experimental
 Portability : POSIX
 
-Here is a longer description of this module, containing some
-commentary with @some markup@.
+This module exports the main tensor- and shape-related data types and functions.
+
+A 'Tensor' is parametrized by its covariant and contravariant index sets and by an array of nonzero data. Each index can be either dense or sparse; dense tensor indices only carry a scalar dimensionality field, whereas sparse fields require a cumulative array, an index array and the dimensionality.
+
 -}
 module Data.Tensor
   (
-  -- * Tensor type
+  -- * Tensor 
   Tensor(..), mkTensor, mkTensorUnsafe,
-  nnz, tdim, 
-  -- * Shape type
-  Sh(..), mkSh, 
-  -- * Dimension types
-  Dd(..), Sd(..)
+  nnz, tdim,
+  -- ** Tensor operations
+  contractionIndices, outerProdIndices, 
+  -- * Shape 
+  Sh(..), mkSh, Shape(..),
+  -- * Dimension 
+  Dd(..), Sd(..), DimE
   )
   where
 
