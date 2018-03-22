@@ -37,9 +37,18 @@ newtype Sh n v i =
 instance (Show n, Show i, Show (v i)) => Show (Sh n v i) where
   show (Sh m) = show $ M.toList m
 
+instance Integral i => Shape (Sh n v i) where
+  rank = rank_
+  dim = dim_
+  
+
 -- | Construct a shape given a list of either dense of sparse dimensions
 mkSh :: Ord n => [(n, DimE v i)] -> Sh n v i
 mkSh = Sh . M.fromList
+
+-- | Construct a shape of dense dimensions given a list of index labels and a list of dimensionalities
+mkShD :: Ord n => [n] -> [i] -> Sh n v i
+mkShD ixs xs = Sh (M.fromList $ zip ixs (map (Left . DG.Dd) xs))
 
 rank_ :: Sh n v i -> Int
 rank_ = length . unShDn
@@ -61,8 +70,6 @@ shDiff h sh1 sh2 = sequence $ M.intersectionWith f (unShDn sh1) (unShDn sh2) whe
             if da == db then pure (h a b) else throwM (MismatchedDims da db)
 
                             
-instance Integral i => Shape (Sh n v i) where
-  rank = rank_
-  dim = dim_
+
 
 

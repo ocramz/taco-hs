@@ -46,9 +46,10 @@ import Control.Arrow ((&&&))
 import qualified Data.Set as S
 import qualified Data.Map as M
 import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM)
+import Control.Exception
 import Data.Tensor.Exception
 import Data.Shape.Types (Shape(..), rank, dim, Z, (:#), (:.))
-import Data.Shape (Sh(..), mkSh, DimE, shDiff)
+import Data.Shape (Sh(..), mkSh, mkShD, DimE, shDiff)
 import Data.Dim.Generic (Dd(..), Sd(..))
 
 

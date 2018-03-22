@@ -1,17 +1,19 @@
 {-# language GADTs #-}
 {-# language PackageImports #-}
 
-module Data.Tensor.Compiler (
-  --   contract
-  --   -- * Tensor types
-  -- , Tensor(..), Sh(..), Dd(..), Sd(..)
-    -- * Syntax
-    Phoas, eval, var, let_, let2_
-    -- * Exceptions
-  , CException (..)
-  )where
+module Data.Tensor.Compiler
+  -- (
+  -- --   contract
+  -- --   -- * Tensor types
+  -- -- , Tensor(..), Sh(..), Dd(..), Sd(..)
+  --   -- * Syntax
+  --   Phoas, eval, var, let_, let2_
+  -- --   -- * Exceptions
+  -- -- , CException (..)
+  -- )
+  where
 
-import Data.Typeable
+-- import Data.Typeable
 -- import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM, MonadCatch(..), catch)
 import Control.Exception (Exception(..))
 
@@ -76,13 +78,7 @@ import Data.Tensor.Compiler.PHOAS -- (Phoas(..), let_, let2_, var, lift1, lift2,
 --     let2_ (var t1) (var t2) (f ixs')
 
 
--- | Exceptions
-data CException = IncompatShape String | IncompatIx String deriving (Eq, Typeable)
-instance Show CException where
-  show c = case c of
-    IncompatShape str -> unwords ["Incompatible shape:", str]
-    IncompatIx str -> unwords ["Incompatible index:", str]
-instance Exception CException where
+
 
 
 

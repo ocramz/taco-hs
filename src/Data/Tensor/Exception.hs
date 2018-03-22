@@ -14,3 +14,12 @@ instance Show TException where
     IncompatDataSize ddat d -> unwords [show ddat, ">", show d]
 instance Exception TException
 
+
+
+-- | Exceptions
+data CException = IncompatShape String | IncompatIx String deriving (Eq, Typeable)
+instance Show CException where
+  show c = case c of
+    IncompatShape str -> unwords ["Incompatible shape:", str]
+    IncompatIx str -> unwords ["Incompatible index:", str]
+instance Exception CException where
