@@ -18,15 +18,15 @@ Here is a longer description of this module, containing some
 commentary with @some markup@.
 -}
 module Data.Tensor
-  -- (
-  -- -- * Tensor type
-  -- Tensor(..),
-  -- tshape, tdata, nnz, rank, dim, 
-  -- -- * Shape type
-  -- Sh(..),
-  -- -- * Dimension types
-  -- Dim.Dd(..), Dim.Sd(..)
-  -- )
+  (
+  -- * Tensor type
+  Tensor(..), mkTensor, mkTensorUnsafe,
+  nnz, tdim, 
+  -- * Shape type
+  Sh(..), mkSh, 
+  -- * Dimension types
+  Dd(..), Sd(..)
+  )
   where
 
 -- import qualified Data.Vector as V
@@ -74,6 +74,7 @@ mkTensor shco shcontra vdat
     vd = length vdat
     dtot = product (dim shco) * product (dim shcontra)
 
+-- | Unsafe tensor construction. Doesn't check data size compatibility
 mkTensorUnsafe ::
   Sh n v i -> Sh n v i -> v e -> Tensor (Sh n v i) (Sh n v i) v e
 mkTensorUnsafe = Tensor
@@ -113,16 +114,7 @@ outerProdIndices f t1 t2 = shDiff f (contraIx t1) (coIx t2)
 
 
 
--- test data
 
-t0 = mkTensorUnsafe tdco tdcontra [1..12]
-
-data Ix = I | J | K | L | M | N deriving (Eq, Show, Ord, Enum)
-
-tdco, tdcontra :: Sh Ix [] Int
-tdco = mkSh $ zip [I, J ..] [Left (Dd 3), Left (Dd 2)]
-
-tdcontra = mkSh $ zip [K] [Left (Dd 2)]
 
 
 
