@@ -39,7 +39,7 @@ import qualified Data.Map as M
 import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM)
 import Data.Tensor.Exception
 import Data.Shape.Types (Shape(..), rank, dim, Z, (:#), (:.))
-import Data.Shape.Dynamic.Named -- (Sh(..), DimE, shDiff)
+import Data.Shape (Sh(..), mkSh, DimE, shDiff)
 import Data.Dim.Generic (Dd(..), Sd(..))
 
 

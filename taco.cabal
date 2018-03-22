@@ -22,15 +22,17 @@ library
                        Data.Tensor.Compiler.PHOAS
                        Data.Tensor.Compiler.Free
                        Data.Tensor.Compiler.MultiStage                       
-                       Data.Dim
                        Data.Dim.Generic
                        Data.Shape
-                       Data.Shape.Types                       
+                    
+                       Data.Tensor.Exception
+  other-modules:
+                       Data.Shape.Static
+                       Data.Shape.Static.Rank           
                        Data.Shape.Dynamic
                        Data.Shape.Dynamic.Named
-                       Data.Shape.Static
-                       Data.Tensor.Exception
-  -- other-modules:
+                       Data.Shape.Types                               
+                       Data.Dim  
   build-depends:       base >= 4.7 && < 5
                      , containers
                      , exceptions
