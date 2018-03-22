@@ -32,14 +32,15 @@ type DimE v i = Either (DG.Dd i) (DG.Sd v i)
 newtype Sh n v i =
   Sh {
     unShDn :: M.Map n (DimE v i)
-    } deriving (Eq, Show)
+    } deriving (Eq)
+
+instance (Show n, Show i, Show (v i)) => Show (Sh n v i) where
+  show (Sh m) = show $ M.toList m
 
 -- | Construct a shape given a list of either dense of sparse dimensions
-mkShDn :: Ord n => [(n, DimE v i)] -> Sh n v i
-mkShDn = Sh . M.fromList
+mkSh :: Ord n => [(n, DimE v i)] -> Sh n v i
+mkSh = Sh . M.fromList
 
-ixLabels :: Ord n => Sh n v i -> S.Set n
-ixLabels = S.fromList . M.keys . unShDn
 
 rank_ :: Sh n v i -> Int
 rank_ = length . unShDn

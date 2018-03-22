@@ -4,6 +4,7 @@
 {-# language PackageImports #-}
 {-# language TypeFamilies #-}
 {-# language FlexibleInstances #-}
+{-# language RankNTypes #-}
 module Data.Tensor
   -- (
   -- -- * Tensor type
@@ -26,7 +27,7 @@ import qualified Data.Map as M
 import "exceptions" Control.Monad.Catch (MonadThrow(..))
 import Data.Shape.Types (Shape(..), rank, dim, Z, (:#), (:.))
 import Data.Shape.Dynamic.Named -- (Sh(..), DimE, shDiff)
-import qualified Data.Dim.Generic (Dd(..), Sd(..))
+import Data.Dim.Generic (Dd(..), Sd(..))
 
 
 -- | Covariant indices, contravariant indices, container type, element type
@@ -37,11 +38,18 @@ data Tensor i j v e where
     -> v e  
     -> Tensor (Sh n v i) (Sh n v i) v e
 
+instance (Show i, Show j) => Show (Tensor i j v e) where
+  show (Tensor shco shcontra vdat) =
+    unwords ["covariant:", show shco,
+             "contravariant:", show shcontra]
+
 nnz :: Foldable v => Tensor i j v e -> Int
 nnz (Tensor _ _ v) = length v
 
-tdim :: (Shape i, Shape j) => Tensor i j v e -> ([Int], [Int])
-tdim = dim . coIx &&& dim . contraIx
+tdim :: (Shape i, Shape j) => Tensor i j v e -> (Int, Int)
+tdim = sd . coIx &&& sd . contraIx where
+  sd :: forall x . Shape x => x -> Int
+  sd = sum . dim
 
 mkTensor ::
   Sh n v i -> Sh n v i -> v e -> Tensor (Sh n v i) (Sh n v i) v e
@@ -79,6 +87,17 @@ outerProdIndices f t1 t2 = shDiff f (contraIx t1) (coIx t2)
 
 
 
+
+-- test data
+
+t0 = mkTensor tdco tdcontra [1..12]
+
+data Ix = I | J | K | L | M | N deriving (Eq, Show, Ord, Enum)
+
+tdco, tdcontra :: Sh Ix [] Int
+tdco = mkSh $ zip [I, J ..] [Left (Dd 3), Left (Dd 2)]
+
+tdcontra = mkSh $ zip [J] [Left (Dd 2)]
 
 
 
