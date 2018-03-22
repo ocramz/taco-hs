@@ -20,6 +20,7 @@ library
                        Data.Tensor.Compiler
                        Data.Tensor
                        Data.Tensor.Compiler.PHOAS
+                       Data.Tensor.Compiler.PHOAS.MultiInterpreter                       
                        Data.Tensor.Compiler.Free
                        Data.Tensor.Compiler.MultiStage                       
                        Data.Dim.Generic
