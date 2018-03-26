@@ -57,7 +57,7 @@ dim_ :: Integral i => Sh n v i -> [Int]
 dim_ sh = fromIntegral . DG.dim . snd <$> M.toList (unShDn sh)
 
 
--- | Combinator that acts on the intersection of two index sets. If all matching indices have same dimensions, return some function of the corresponding dimension pair, otherwise return Nothing.
+-- | Combinator that acts on the intersection of two index sets. If all matching indices have same dimensions, return some function of the corresponding dimension pair, otherwise throws a (pure) exception, e.g. returns Nothing or Left (MismatchedDims .. ).
 --
 -- This is meant to be used to represent tensor contractions; in the case of tensor contraction, the two shape operands represent the covariant index set of the first tensor and the contravariant i.s. of the second one.
 shDiff :: (MonadThrow m, Ord k, Integral i) =>
@@ -69,7 +69,7 @@ shDiff h sh1 sh2 = sequence $ M.intersectionWith f (unShDn sh1) (unShDn sh2) whe
           in
             if da == db then pure (h a b) else throwM (MismatchedDims da db)
 
-                            
+
 
 
 

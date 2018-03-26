@@ -17,7 +17,6 @@ data E a where
 data E1 a =
     K1 a
   | Dot a a -- (E1 a) (E1 a)
-  -- | PW2 a a  -- 
   deriving (Eq, Show)
 
 -- | Evaluate user-facing syntax into internal one

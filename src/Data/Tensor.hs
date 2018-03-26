@@ -53,13 +53,21 @@ import Data.Shape (Sh(..), mkSh, mkShD, DimE, shDiff)
 import Data.Dim.Generic (Dd(..), Sd(..))
 
 
--- | Covariant indices, contravariant indices, container type, element type
+-- -- | Covariant indices, contravariant indices, container type, element type
+-- data Tensor i j v e where
+--   Tensor :: 
+--        Sh n v i                    
+--     -> Sh n v i  
+--     -> v e  
+--     -> Tensor (Sh n v i) (Sh n v i) v e
+
 data Tensor i j v e where
-  Tensor ::    
-       Sh n v i                    
-    -> Sh n v i                    
-    -> v e  
-    -> Tensor (Sh n v i) (Sh n v i) v e
+  Tensor ::
+    (Shape i, Shape j) =>
+         i
+      -> j
+      -> v e
+      -> Tensor i j v e
 
 instance (Show i, Show j) => Show (Tensor i j v e) where
   show (Tensor shco shcontra _) =
@@ -69,6 +77,15 @@ instance (Show i, Show j) => Show (Tensor i j v e) where
 -- | Number of nonzero entries in the tensor data
 nnz :: Foldable v => Tensor i j v e -> Int
 nnz (Tensor _ _ v) = length v
+
+-- | Nonzero density
+density :: (Shape i, Shape j, Foldable v, Fractional a) => Tensor i j v e -> a
+density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
+
+-- | Maximum number of elements
+maxNElems :: (Shape j, Shape i) => Tensor i j v e -> Int
+maxNElems t = Prelude.product pco * Prelude.product pcontra where
+  (pco, pcontra) = tdim t
 
 -- | Tensor dimensions: (covariant, contravariant)
 tdim :: (Shape i, Shape j) => Tensor i j v e -> ([Int], [Int])
@@ -90,7 +107,7 @@ mkTensor shco shcontra vdat
     dtot = product (dim shco) * product (dim shcontra)
 
 -- | Unsafe tensor construction. Doesn't check data size compatibility
-mkTensorUnsafe ::
+mkTensorUnsafe :: Integral i => 
   Sh n v i -> Sh n v i -> v e -> Tensor (Sh n v i) (Sh n v i) v e
 mkTensorUnsafe = Tensor
 
@@ -125,6 +142,10 @@ outerProdIndices f t1 t2 = shDiff f (contraIx t1) (coIx t2)
 
 
 
+
+-- class FromList e where
+--   fromList :: [e] -> Tensor i j [] e
+  
 
 
 
