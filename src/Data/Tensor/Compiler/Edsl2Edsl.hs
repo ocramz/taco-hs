@@ -285,3 +285,100 @@ instance ShowExp LowExp where
   showExp (LMul a b) = bracket (showExp a ++ " * " ++ showExp b)
   showExp (LNot a)   = bracket ("not " ++ showExp a)
   showExp (LEq a b)  = bracket (showExp a ++ " == " ++ showExp b)
+
+
+
+{-| The expression language LowExp is really too simple to be very useful. For example, it does not allow any kind of iteration, so any iterative program has to be written using the monadic for-loop. 
+
+To fix this, we introduce a new expression language, HighExp: -}
+
+data HighExp a where
+  -- Simple constructs (same as in LowExp):
+  HVar :: Type a => VarId -> HighExp a
+  HLit :: Type a => a -> HighExp a
+  HAdd :: (Num a, Type a) => HighExp a -> HighExp a -> HighExp a
+  HMul :: (Num a, Type a) => HighExp a -> HighExp a -> HighExp a
+  HNot :: HighExp Bool -> HighExp Bool
+  HEq  :: Type a => HighExp a -> HighExp a -> HighExp Bool
+
+  -- Let binding:
+  Let  :: Type a
+       => HighExp a                 -- value to share
+       -> (HighExp a -> HighExp b)  -- body
+       -> HighExp b
+
+  -- Pure iteration:
+  Iter :: Type s
+       => HighExp Int32            -- number of iterations
+       -> HighExp s                -- initial state
+       -> (HighExp s -> HighExp s) -- step function
+       -> HighExp s                -- final state
+
+instance (Num a, Type a) => Num (HighExp a) where
+  fromInteger = HLit . fromInteger
+  (+) = HAdd
+  (*) = HMul
+
+instance FreeExp HighExp where
+  constExp = HLit
+  varExp   = HVar
+
+
+{- |
+Now we are getting close to the main point of the article. This is what we have so far:
+
+    * A way to generate code from low-level programs (of type Prog LowExp a).
+
+    * The ability to write high-level programs (of type Prog HighExp a).
+
+What is missing is a function that translates high-level programs to low-level programs. Generalizing the problem a bit, we need a way to rewrite a program over one expression type to a program over a different expression type – a process which we call “re-expressing”.
+
+Since Prog is a monad like any other, we can actually express this translation function using interpret:
+-}
+
+
+reexpress :: (forall a . exp1 a -> Prog exp2 (exp2 a))
+          -> Prog exp1 b
+          -> Prog exp2 b
+reexpress reexp = interpret (reexpressCMD reexp)
+
+reexpressCMD :: (forall a . exp1 a -> Prog exp2 (exp2 a))
+             -> CMD exp1 b
+             -> Prog exp2 b
+reexpressCMD reexp (InitRef a)  = CMD . InitRef =<< reexp a
+reexpressCMD reexp (GetRef r)   = CMD (GetRef r)
+reexpressCMD reexp (SetRef r a) = CMD . SetRef r =<< reexp a
+reexpressCMD reexp Read         = CMD Read
+reexpressCMD reexp (Write a)    = CMD . Write =<< reexp a
+reexpressCMD reexp (PrintStr s) = CMD (PrintStr s)
+reexpressCMD reexp (For n body) = do
+    n' <- reexp n
+    CMD $ For n' (reexpress reexp . body)
+
+transHighExp :: HighExp a -> Prog LowExp (LowExp a)
+transHighExp (HVar v)   = return (LVar v)
+transHighExp (HLit a)   = return (LLit a)
+transHighExp (HAdd a b) = LAdd <$> transHighExp a <*> transHighExp b
+transHighExp (HMul a b) = LMul <$> transHighExp a <*> transHighExp b
+transHighExp (HNot a)   = LNot <$> transHighExp a
+transHighExp (HEq a b)  = LEq  <$> transHighExp a <*> transHighExp b
+-- It gets more interesting when we get to Let. There is no corresponding construct in LowExp, so we have to realize it using imperative constructs:
+transHighExp (Let a body) = do
+  r  <- initRef =<< transHighExp a
+  a' <- CMD $ GetRef r
+  transHighExp $ body $ valToExp a'
+-- Translation of Iter is similar to that of Let in that it uses a reference for the local state. The iteration is realized by an imperative for loop. In each iteration, the state variable r is read, then the next state is computed and written back to the r. After the loop, the content of r is returned as the final state.
+transHighExp (Iter n s body) = do
+  n' <- transHighExp n
+  r  <- initRef =<< transHighExp s
+  for n' $ \_ -> do
+    sPrev <- CMD $ GetRef r
+    sNext <- transHighExp $ body $ valToExp sPrev
+    setRef r sNext
+  getRef r
+
+translateHigh :: Prog HighExp a -> Prog LowExp a
+translateHigh = reexpress transHighExp
+
+compile :: Prog HighExp a -> String
+compile = lowToCode . translateHigh  
