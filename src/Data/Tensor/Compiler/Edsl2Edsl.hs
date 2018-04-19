@@ -382,3 +382,9 @@ translateHigh = reexpress transHighExp
 
 compile :: Prog HighExp a -> String
 compile = lowToCode . translateHigh  
+
+
+
+
+
+
