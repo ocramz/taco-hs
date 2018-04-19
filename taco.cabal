@@ -22,7 +22,8 @@ library
                        Data.Tensor.Compiler.PHOAS
                        Data.Tensor.Compiler.PHOAS.MultiInterpreter                       
                        Data.Tensor.Compiler.Free
-                       Data.Tensor.Compiler.MultiStage                       
+                       Data.Tensor.Compiler.MultiStage
+                       Data.Tensor.Compiler.Edsl2Edsl                       
                        Data.Dim.Generic
                        Data.Shape
                     
@@ -37,7 +38,8 @@ library
   build-depends:       base >= 4.7 && < 5
                      , containers
                      , exceptions
-                     -- , mtl
+                     , mtl
+                     , transformers
                      , vector
                      -- , vector-algorithms
                      -- , containers
