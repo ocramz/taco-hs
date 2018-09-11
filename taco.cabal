@@ -26,10 +26,8 @@ library
                        Data.Tensor.Compiler.Edsl2Edsl                       
                        Data.Dim.Generic
                        Data.Shape
-                    
                        Data.Tensor.Exception
-  other-modules:
-                       Data.Shape.Static
+  other-modules:       Data.Shape.Static
                        Data.Shape.Static.Rank           
                        Data.Shape.Dynamic
                        Data.Shape.Dynamic.Named
