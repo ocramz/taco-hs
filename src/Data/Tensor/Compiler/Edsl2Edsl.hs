@@ -183,18 +183,18 @@ instance FreeExp LowExp where
 
 {-| Example program : -}
 
-sumInput :: Prog LowExp ()
-sumInput = do
-  r <- initRef 0
-  printStr "Please enter 4 numbers\n"
-  for 4 $ \i -> do
-    printStr " > "
-    n <- readInput
-    modifyRef r (+n)
-  printStr "The sum of your numbers is "
-  s <- getRef r
-  writeOutput s
-  printStr ".\n"  
+-- sumInput :: Prog LowExp ()
+-- sumInput = do
+--   r <- initRef 0
+--   printStr "Please enter 4 numbers\n"
+--   for 4 $ \i -> do
+--     printStr " > "
+--     n <- readInput
+--     modifyRef r (+n)
+--   printStr "The sum of your numbers is "
+--   s <- getRef r
+--   writeOutput s
+--   printStr ".\n"  
 
 
 
