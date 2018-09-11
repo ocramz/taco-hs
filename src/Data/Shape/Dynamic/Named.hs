@@ -4,11 +4,12 @@ Module      : Data.Shape.Dynamic.Named
 Description : Labelled tensor shape (i.e. index) data
 Copyright   : (c) Marco Zocca, 2018
 License     : GPL-3
-Maintainer  : zocca.marco gmail
+Maintainer  : ocramz fripost org
 Stability   : experimental
 Portability : POSIX
 
-Here is a longer description of this module, containing some
+This module defines a notion of tensor shape where each dimension is of dynamically-checked type (i.e. 'Either' dense or sparse) and has a name (which could be a string or other symbol).
+
 commentary with @some markup@.
 -}
 module Data.Shape.Dynamic.Named where

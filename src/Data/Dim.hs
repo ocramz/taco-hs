@@ -1,7 +1,19 @@
+{-|
+Module      : Data.Dim.Generic
+Description : Dimension data, stored as a Vector.Unboxed
+Copyright   : (c) Marco Zocca, 2018
+License     : GPL-3
+Maintainer  : zocca.marco gmail
+Stability   : experimental
+Portability : POSIX
+
+Here is a longer description of this module, containing some
+commentary with @some markup@.
+-}
 module Data.Dim where
 
 import Data.Vector.Unboxed as V
-
+-- import qualified Data.Dim.Generic as DG
 
 -- * Dimension metadata
 
