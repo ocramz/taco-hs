@@ -82,6 +82,10 @@ mkDenseV v = T [denseDimE n] [] v
   where
     n = length v
 
+-- | Number of nonzero entries in the tensor data
+nnz :: Foldable v => Tensor v e -> Int
+nnz = length . tData
+
 -- transpose (T co contra v) = T contra co v
 
 
