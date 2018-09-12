@@ -3,7 +3,7 @@ Module      : Data.Dim.Generic
 Description : Dimension data, parametrized by an arbitrary container type
 Copyright   : (c) Marco Zocca, 2018
 License     : GPL-3
-Maintainer  : zocca.marco gmail
+Maintainer  : ocramz fripost org
 Stability   : experimental
 Portability : POSIX
 
@@ -12,27 +12,47 @@ commentary with @some markup@.
 -}
 module Data.Dim.Generic where
 
--- | To define a /dense/ dimension we only need the dimensionality parameter
-newtype Dd i = Dd {
+
+-- | Tensor dimensions can be either dense or sparse
+newtype DimE v e = DimE {
+  unDimE :: Either Dd (Sd v e)
+  } deriving (Eq)
+
+instance Show (DimE v e) where
+  show (DimE ei) = either shd shs ei where
+    shd (Dd n) = unwords ["dense :", show n]
+    shs (Sd _ _ n) = unwords ["sparse :", show n]
+
+-- | Construct a dense DimE
+denseDimE :: Int  -> DimE v e
+denseDimE = DimE . Left . Dd 
+
+-- | Construct a sparse DimE
+sparseDimE :: Maybe (v e) -> v e -> Int -> DimE v e
+sparseDimE sv ixv n = DimE (Right (Sd sv ixv n))
+
+
+-- | To define a /dense/ dimension we only need the dimensionality parameter (an integer)
+newtype Dd = Dd {
    -- | Dimensionality
-    dDim :: i
+    dDim :: Int
   } deriving (Eq)
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
-data Sd v i = Sd {
-      -- | Cumulative array (# nonzero entries per degree of freedom). Not all storage formats (e.g. COO for rank-2 tensors) need this information.
-      sCml :: Maybe (v i)
+data Sd v e = Sd {
+      -- | Cumulative array (# nonzero entries per degree of freedom). Not all storage formats (e.g. COO for rank-2 tensors) need this information. One can also view this array as storing the location in the Idx array where each segment begins.
+      sCml :: Maybe (v e)
       -- | Index array (indices of nonzero entries)
-    , sIdx :: v i
+    , sIdx :: v e
       -- | Dimensionality 
-    , sDim :: i
+    , sDim :: Int
     } deriving (Eq)
 
-dim :: Integral i => Either (Dd i) (Sd v i) -> Int
-dim = fromIntegral . either dDim sDim 
+-- dim :: Integral i => Either (Dd i) (Sd v i) -> Int
+-- dim = fromIntegral . either dDim sDim 
 
-instance Show i => Show (Dd i) where
-  show (Dd i) = unwords ["D", show i]
+instance Show Dd where
+  show (Dd n) = unwords ["D", show n]
 
 instance (Show (v i), Show i) => Show (Sd v i) where
   show (Sd _ _ sdim) = unwords ["S", show sdim]

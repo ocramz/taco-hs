@@ -20,22 +20,22 @@ A 'Tensor' is parametrized by its covariant and contravariant index sets and by 
 
 -}
 module Data.Tensor
-  (
-  -- * Tensor 
-  Tensor(..),
-  -- ** Constructors
-  mkTensor, mkTensorUnsafe,
-  -- -- *** Accessors
-  -- coIx, contraIx,
-  -- ** Properties
-  nnz, tdim, trank,
-  -- ** Tensor operations
-  contractionIndices, outerProdIndices, 
-  -- * Shape 
-  Sh(..), mkSh, Shape(..),
-  -- * Dimension 
-  Dd(..), Sd(..), DimE
-  )
+  -- (
+  -- -- * Tensor 
+  -- Tensor(..),
+  -- -- ** Constructors
+  -- mkTensor, mkTensorUnsafe,
+  -- -- -- *** Accessors
+  -- -- coIx, contraIx,
+  -- -- ** Properties
+  -- nnz, tdim, trank,
+  -- -- ** Tensor operations
+  -- contractionIndices, outerProdIndices, 
+  -- -- * Shape 
+  -- Sh(..), mkSh, Shape(..),
+  -- -- * Dimension 
+  -- Dd(..), Sd(..), DimE
+  -- )
   where
 
 -- import qualified Data.Vector as V
@@ -48,8 +48,17 @@ import qualified Data.Map as M
 import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM)
 import Control.Exception
 import Data.Tensor.Exception
-import Data.Shape (Sh(..), mkSh, mkShD, DimE, shDiff, Shape(..), rank, dim, Z, (:#), (:.))
-import Data.Dim.Generic (Dd(..), Sd(..))
+-- import Data.Shape (
+--   Sh(..)
+--   , mkSh
+--   , mkShD
+--   , DimE
+--   , shDiff
+--   , Shape(..)
+--   , rank
+--   , dim
+--   , Z, (:#), (:.))
+import Data.Dim.Generic (Dd(..), Sd(..), DimE(..), denseDimE, sparseDimE)
 
 
 -- -- | Covariant indices, contravariant indices, container type, element type
@@ -60,84 +69,101 @@ import Data.Dim.Generic (Dd(..), Sd(..))
 --     -> v e  
 --     -> Tensor (Sh n v i) (Sh n v i) v e
 
-data Tensor i j v e where
-  Tensor ::
-    (Shape i, Shape j) =>
-         i
-      -> j
-      -> v e
-      -> Tensor i j v e
+-- | Index type, container type, element type
+data Tensor v e = T {
+    coIx :: [DimE v e]
+  , contraIx :: [DimE v e]
+  , tData :: v e
+  } deriving (Eq, Show)
 
-instance (Show i, Show j) => Show (Tensor i j v e) where
-  show (Tensor shco shcontra _) =
-    unwords ["covariant:", show shco,
-             "contravariant:", show shcontra]
 
--- | Number of nonzero entries in the tensor data
-nnz :: Foldable v => Tensor i j v e -> Int
-nnz (Tensor _ _ v) = length v
-
--- | Nonzero density
-density :: (Shape i, Shape j, Foldable v, Fractional a) => Tensor i j v e -> a
-density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
-
--- | Maximum number of elements
-maxNElems :: (Shape j, Shape i) => Tensor i j v e -> Int
-maxNElems t = Prelude.product pco * Prelude.product pcontra where
-  (pco, pcontra) = tdim t
-
--- | Tensor dimensions: (covariant, contravariant)
-tdim :: (Shape i, Shape j) => Tensor i j v e -> ([Int], [Int])
-tdim = dim . coIx &&& dim . contraIx
-
--- | Tensor rank: (covariant, contravariant)
-trank :: (Shape i, Shape j) => Tensor i j v e -> (Int, Int)
-trank t = (length co, length contra) where
-  (co, contra) = tdim t
-
--- | Safe tensor construction; for now it only compares the length of the entry vector with the upper bound on the tensor size (i.e. considering all dimensions as dense). Can be refined by computing effective nonzeros along sparse dimensions
-mkTensor :: (Integral i, Foldable v, MonadThrow m) =>
-     Sh n v i -> Sh n v i -> v e -> m (Tensor (Sh n v i) (Sh n v i) v e)
-mkTensor shco shcontra vdat
-  | vd <= dtot = pure $ mkTensorUnsafe shco shcontra vdat
-  | otherwise = throwM (IncompatDataSize vd dtot)
+mkDenseV :: Foldable v => v e -> Tensor v e
+mkDenseV v = T [denseDimE n] [] v
   where
-    vd = length vdat
-    dtot = product (dim shco) * product (dim shcontra)
+    n = length v
 
--- | Unsafe tensor construction. Doesn't check data size compatibility
-mkTensorUnsafe :: Integral i => 
-  Sh n v i -> Sh n v i -> v e -> Tensor (Sh n v i) (Sh n v i) v e
-mkTensorUnsafe = Tensor
+-- transpose (T co contra v) = T contra co v
 
-instance Functor v => Functor (Tensor i j v) where
-  fmap f (Tensor shi shj v) = Tensor shi shj (f <$> v)
 
--- | Covariant indices
-coIx :: Tensor co contra v e -> co
-coIx (Tensor ix _ _) = ix
 
--- | Contravariant indices
-contraIx :: Tensor co contra v e -> contra
-contraIx (Tensor _ ix _) = ix
+-- data Tensor i j v e where
+--   Tensor ::
+--     (Shape i, Shape j) =>
+--          i
+--       -> j
+--       -> v e
+--       -> Tensor i j v e
 
--- | Two tensors can be contracted if some covariant indices in the first appear in the contravariant indices of the second.
-contractionIndices
-  :: (Ord k, MonadThrow m, Integral i1) =>
-     (DimE v1 i1 -> DimE v1 i1 -> b)   -- ^ Index combining function
-     -> Tensor (Sh k v1 i1) j v2 e1
-     -> Tensor i2 (Sh k v1 i1) v3 e2
-     -> m (M.Map k b)
-contractionIndices f t1 t2 = shDiff f (coIx t1) (contraIx t2)
+-- instance (Show i, Show j) => Show (Tensor i j v e) where
+--   show (Tensor shco shcontra _) =
+--     unwords ["covariant:", show shco,
+--              "contravariant:", show shcontra]
 
--- | The outer product of two tensors is defined over the non-empty intersection of the contravariant indices of the first with the covariant ones of the second.
-outerProdIndices
-  :: (Ord k, MonadThrow m, Integral i1) =>
-     (DimE v1 i1 -> DimE v1 i1 -> b)   -- ^ Index combining function
-     -> Tensor i2 (Sh k v1 i1) v2 e1
-     -> Tensor (Sh k v1 i1) j v3 e2
-     -> m (M.Map k b)
-outerProdIndices f t1 t2 = shDiff f (contraIx t1) (coIx t2)
+-- -- | Number of nonzero entries in the tensor data
+-- nnz :: Foldable v => Tensor i j v e -> Int
+-- nnz (Tensor _ _ v) = length v
+
+-- -- | Nonzero density
+-- density :: (Shape i, Shape j, Foldable v, Fractional a) => Tensor i j v e -> a
+-- density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
+
+-- -- | Maximum number of elements
+-- maxNElems :: (Shape j, Shape i) => Tensor i j v e -> Int
+-- maxNElems t = Prelude.product pco * Prelude.product pcontra where
+--   (pco, pcontra) = tdim t
+
+-- -- | Tensor dimensions: (covariant, contravariant)
+-- tdim :: (Shape i, Shape j) => Tensor i j v e -> ([Int], [Int])
+-- tdim = dim . coIx &&& dim . contraIx
+
+-- -- | Tensor rank: (covariant, contravariant)
+-- trank :: (Shape i, Shape j) => Tensor i j v e -> (Int, Int)
+-- trank t = (length co, length contra) where
+--   (co, contra) = tdim t
+
+-- -- | Safe tensor construction; for now it only compares the length of the entry vector with the upper bound on the tensor size (i.e. considering all dimensions as dense). Can be refined by computing effective nonzeros along sparse dimensions
+-- mkTensor :: (Integral i, Foldable v, MonadThrow m) =>
+--      Sh n v i -> Sh n v i -> v e -> m (Tensor (Sh n v i) (Sh n v i) v e)
+-- mkTensor shco shcontra vdat
+--   | vd <= dtot = pure $ mkTensorUnsafe shco shcontra vdat
+--   | otherwise = throwM (IncompatDataSize vd dtot)
+--   where
+--     vd = length vdat
+--     dtot = product (dim shco) * product (dim shcontra)
+
+-- -- | Unsafe tensor construction. Doesn't check data size compatibility
+-- mkTensorUnsafe :: Integral i => 
+--   Sh n v i -> Sh n v i -> v e -> Tensor (Sh n v i) (Sh n v i) v e
+-- mkTensorUnsafe = Tensor
+
+-- instance Functor v => Functor (Tensor i j v) where
+--   fmap f (Tensor shi shj v) = Tensor shi shj (f <$> v)
+
+-- -- | Covariant indices
+-- coIx :: Tensor co contra v e -> co
+-- coIx (Tensor ix _ _) = ix
+
+-- -- | Contravariant indices
+-- contraIx :: Tensor co contra v e -> contra
+-- contraIx (Tensor _ ix _) = ix
+
+-- -- | Two tensors can be contracted if some covariant indices in the first appear in the contravariant indices of the second.
+-- contractionIndices
+--   :: (Ord k, MonadThrow m, Integral i1) =>
+--      (DimE v1 i1 -> DimE v1 i1 -> b)   -- ^ Index combining function
+--      -> Tensor (Sh k v1 i1) j v2 e1
+--      -> Tensor i2 (Sh k v1 i1) v3 e2
+--      -> m (M.Map k b)
+-- contractionIndices f t1 t2 = shDiff f (coIx t1) (contraIx t2)
+
+-- -- | The outer product of two tensors is defined over the non-empty intersection of the contravariant indices of the first with the covariant ones of the second.
+-- outerProdIndices
+--   :: (Ord k, MonadThrow m, Integral i1) =>
+--      (DimE v1 i1 -> DimE v1 i1 -> b)   -- ^ Index combining function
+--      -> Tensor i2 (Sh k v1 i1) v2 e1
+--      -> Tensor (Sh k v1 i1) j v3 e2
+--      -> m (M.Map k b)
+-- outerProdIndices f t1 t2 = shDiff f (contraIx t1) (coIx t2)
 
 
 

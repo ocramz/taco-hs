@@ -1,9 +1,9 @@
 {-|
-Module      : Data.Dim.Generic
+Module      : Data.Dim
 Description : Dimension data, stored as a Vector.Unboxed
 Copyright   : (c) Marco Zocca, 2018
 License     : GPL-3
-Maintainer  : zocca.marco gmail
+Maintainer  : ocramz fripost org
 Stability   : experimental
 Portability : POSIX
 

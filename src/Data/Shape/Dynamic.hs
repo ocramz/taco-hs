@@ -4,19 +4,18 @@ import Data.Foldable (foldl')
 
 import qualified Data.Dim as Dim
 
-
-newtype ShD i =
-    ShD {unShD :: [Either (Dim.Dd i) (Dim.Sd i)] }
+newtype Sh i =
+    Sh {unShD :: [Either (Dim.Dd i) (Dim.Sd i)] }
       deriving (Eq, Show)
 
-mkDenseShD :: Foldable t => t i -> ShD i
-mkDenseShD xss = ShD $ foldl' (\d s -> Left (Dim.Dd s) : d) [] xss
+mkDenseSh :: Foldable t => t i -> Sh i
+mkDenseSh xss = Sh $ foldl' (\d s -> Left (Dim.Dd s) : d) [] xss
 
-rank :: ShD i -> Int
+rank :: Sh i -> Int
 rank = length . unShD 
 
 -- dim :: ShD i -> [i]
-dim :: (Num b, Integral a) => ShD a -> [b]
+dim :: (Num b, Integral a) => Sh a -> [b]
 dim sh = fromIntegral <$> foldl' (\d s -> Dim.dim s : d) [] (unShD sh)
 
 

@@ -32,7 +32,8 @@ library
                        Data.Shape.Dynamic
                        Data.Shape.Dynamic.Named
                        Data.Shape.Types                               
-                       Data.Dim  
+                       Data.Dim
+                       Data.Dim.Types
   build-depends:       base >= 4.7 && < 5
                      , containers
                      , exceptions
