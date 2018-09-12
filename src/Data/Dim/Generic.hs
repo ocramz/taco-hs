@@ -12,11 +12,23 @@ commentary with @some markup@.
 -}
 module Data.Dim.Generic where
 
+import Data.Shape.Types
 
+
+newtype DimsE v e = DimsE [DimE v e] deriving (Eq, Show)
+
+instance Shape (DimsE v e) where
+  dim (DimsE de) = map dimE de
+  rank = product . dim
+
+  
 -- | Tensor dimensions can be either dense or sparse
 newtype DimE v e = DimE {
   unDimE :: Either Dd (Sd v e)
   } deriving (Eq)
+
+dimE :: DimE v e -> Int
+dimE (DimE ei) = either dDim sDim ei
 
 instance Show (DimE v e) where
   show (DimE ei) = either shd shs ei where

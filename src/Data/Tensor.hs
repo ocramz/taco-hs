@@ -48,6 +48,7 @@ import qualified Data.Map as M
 import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM)
 import Control.Exception
 import Data.Tensor.Exception
+import Data.Shape.Types
 -- import Data.Shape (
 --   Sh(..)
 --   , mkSh
@@ -58,7 +59,7 @@ import Data.Tensor.Exception
 --   , rank
 --   , dim
 --   , Z, (:#), (:.))
-import Data.Dim.Generic (Dd(..), Sd(..), DimE(..), denseDimE, sparseDimE)
+import Data.Dim.Generic (Dd(..), Sd(..), DimE(..), DimsE(..), denseDimE, sparseDimE)
 
 
 -- -- | Covariant indices, contravariant indices, container type, element type
@@ -71,18 +72,18 @@ import Data.Dim.Generic (Dd(..), Sd(..), DimE(..), denseDimE, sparseDimE)
 
 -- | Index type, container type, element type
 data Tensor v e = T {
-    coIx :: [DimE v e]
-  , contraIx :: [DimE v e]
+    coIx :: DimsE v e
+  , contraIx :: DimsE v e
   , tData :: v e
   } deriving (Eq, Show)
 
 
 mkDenseV :: Foldable v => v e -> Tensor v e
-mkDenseV v = T [denseDimE n] [] v
+mkDenseV v = T (DimsE [denseDimE n]) (DimsE []) v
   where
     n = length v
 
--- | Number of nonzero entries in the tensor data
+-- -- | Number of nonzero entries in the tensor data
 nnz :: Foldable v => Tensor v e -> Int
 nnz = length . tData
 
@@ -103,27 +104,25 @@ nnz = length . tData
 --     unwords ["covariant:", show shco,
 --              "contravariant:", show shcontra]
 
--- -- | Number of nonzero entries in the tensor data
--- nnz :: Foldable v => Tensor i j v e -> Int
--- nnz (Tensor _ _ v) = length v
 
--- -- | Nonzero density
--- density :: (Shape i, Shape j, Foldable v, Fractional a) => Tensor i j v e -> a
--- density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
+-- | Nonzero density
+density :: (Fractional a, Foldable v) => Tensor v e -> a
+density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
 
--- -- | Maximum number of elements
--- maxNElems :: (Shape j, Shape i) => Tensor i j v e -> Int
--- maxNElems t = Prelude.product pco * Prelude.product pcontra where
---   (pco, pcontra) = tdim t
+-- | Maximum number of elements
+maxNElems :: Tensor v e -> Int
+maxNElems t = Prelude.product pco * Prelude.product pcontra where
+  (pco, pcontra) = tdim t
 
--- -- | Tensor dimensions: (covariant, contravariant)
--- tdim :: (Shape i, Shape j) => Tensor i j v e -> ([Int], [Int])
--- tdim = dim . coIx &&& dim . contraIx
+-- | Tensor dimensions: (covariant, contravariant)
+tdim :: Tensor v e -> ([Int], [Int])
+tdim = dim . coIx &&& dim . contraIx
 
--- -- | Tensor rank: (covariant, contravariant)
--- trank :: (Shape i, Shape j) => Tensor i j v e -> (Int, Int)
--- trank t = (length co, length contra) where
---   (co, contra) = tdim t
+-- | Tensor rank: (covariant, contravariant)
+trank :: Tensor v e -> (Int, Int)
+trank t = (length co, length contra) where
+  (co, contra) = tdim t
+
 
 -- -- | Safe tensor construction; for now it only compares the length of the entry vector with the upper bound on the tensor size (i.e. considering all dimensions as dense). Can be refined by computing effective nonzeros along sparse dimensions
 -- mkTensor :: (Integral i, Foldable v, MonadThrow m) =>
