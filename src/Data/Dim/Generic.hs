@@ -1,3 +1,4 @@
+{-# language DeriveFunctor #-}
 {-|
 Module      : Data.Dim.Generic
 Description : Dimension data, parametrized by an arbitrary container type
@@ -12,20 +13,28 @@ commentary with @some markup@.
 -}
 module Data.Dim.Generic where
 
+import qualified Data.IntMap.Strict as M
+
 import Data.Shape.Types
 
 
-newtype DimsE v e = DimsE [DimE v e] deriving (Eq, Show)
+newtype DimsE v e = DimsE {unDimsE :: M.IntMap (DimE v e)} deriving (Eq, Show, Functor)
 
 instance Shape (DimsE v e) where
-  dim (DimsE de) = map dimE de
+  dim (DimsE de) = map (dimE . snd) $ M.toList de 
   rank = product . dim
+
+fromListDimsE :: [DimE v e] -> DimsE v e
+fromListDimsE = DimsE . M.fromList . indexed
+
+indexed :: [a] -> [(M.Key, a)]
+indexed = zip [0 .. ]
 
   
 -- | Tensor dimensions can be either dense or sparse
 newtype DimE v e = DimE {
   unDimE :: Either Dd (Sd v e)
-  } deriving (Eq)
+  } deriving (Eq, Functor)
 
 dimE :: DimE v e -> Int
 dimE (DimE ei) = either dDim sDim ei
@@ -58,7 +67,7 @@ data Sd v e = Sd {
     , sIdx :: v e
       -- | Dimensionality 
     , sDim :: Int
-    } deriving (Eq)
+    } deriving (Eq, Functor)
 
 -- dim :: Integral i => Either (Dd i) (Sd v i) -> Int
 -- dim = fromIntegral . either dDim sDim 

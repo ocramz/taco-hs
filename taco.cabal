@@ -20,18 +20,19 @@ library
                        Data.Tensor.Compiler
                        Data.Tensor
                        Data.Tensor.Compiler.PHOAS
-                       Data.Tensor.Compiler.PHOAS.MultiInterpreter                       
+                       Data.Tensor.Compiler.PHOAS.MultiInterpreter        
                        Data.Tensor.Compiler.Free
                        Data.Tensor.Compiler.MultiStage
                        Data.Tensor.Compiler.Edsl2Edsl                       
                        Data.Dim.Generic
                        Data.Shape
+                       Data.Shape.Types                         
                        Data.Tensor.Exception
   other-modules:       Data.Shape.Static
                        Data.Shape.Static.Rank           
                        Data.Shape.Dynamic
                        Data.Shape.Dynamic.Named
-                       Data.Shape.Types                               
+                             
                        Data.Dim
                        Data.Dim.Types
   build-depends:       base >= 4.7 && < 5

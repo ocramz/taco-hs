@@ -1,5 +1,5 @@
 {-# language GADTs #-}
--- {-# language DeriveFunctor #-}
+{-# language DeriveFunctor #-}
 {-# language TypeOperators #-}
 {-# language PackageImports #-}
 {-# language TypeFamilies #-}
@@ -59,7 +59,7 @@ import Data.Shape.Types
 --   , rank
 --   , dim
 --   , Z, (:#), (:.))
-import Data.Dim.Generic (Dd(..), Sd(..), DimE(..), DimsE(..), denseDimE, sparseDimE)
+import Data.Dim.Generic (Dd(..), Sd(..), DimE(..), DimsE(..), fromListDimsE, denseDimE, sparseDimE)
 
 
 -- -- | Covariant indices, contravariant indices, container type, element type
@@ -75,11 +75,19 @@ data Tensor v e = T {
     coIx :: DimsE v e
   , contraIx :: DimsE v e
   , tData :: v e
-  } deriving (Eq, Show)
+  } deriving (Eq, Functor)
+
+-- instance Functor v => Functor (Tensor v) where
+--   fmap f (T shi shj v) = T shi shj (f <$> v)
+
+instance Show (Tensor v e) where
+  show (T shco shcontra _) =
+    unwords ["covariant:", show shco,
+             "contravariant:", show shcontra]
 
 
 mkDenseV :: Foldable v => v e -> Tensor v e
-mkDenseV v = T (DimsE [denseDimE n]) (DimsE []) v
+mkDenseV v = T (fromListDimsE [denseDimE n]) (fromListDimsE []) v
   where
     n = length v
 
@@ -87,25 +95,10 @@ mkDenseV v = T (DimsE [denseDimE n]) (DimsE []) v
 nnz :: Foldable v => Tensor v e -> Int
 nnz = length . tData
 
--- transpose (T co contra v) = T contra co v
 
 
 
--- data Tensor i j v e where
---   Tensor ::
---     (Shape i, Shape j) =>
---          i
---       -> j
---       -> v e
---       -> Tensor i j v e
-
--- instance (Show i, Show j) => Show (Tensor i j v e) where
---   show (Tensor shco shcontra _) =
---     unwords ["covariant:", show shco,
---              "contravariant:", show shcontra]
-
-
--- | Nonzero density
+-- | Density of nonzero entries
 density :: (Fractional a, Foldable v) => Tensor v e -> a
 density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
 
@@ -139,8 +132,7 @@ trank t = (length co, length contra) where
 --   Sh n v i -> Sh n v i -> v e -> Tensor (Sh n v i) (Sh n v i) v e
 -- mkTensorUnsafe = Tensor
 
--- instance Functor v => Functor (Tensor i j v) where
---   fmap f (Tensor shi shj v) = Tensor shi shj (f <$> v)
+
 
 -- -- | Covariant indices
 -- coIx :: Tensor co contra v e -> co
