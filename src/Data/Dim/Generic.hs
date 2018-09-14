@@ -17,8 +17,12 @@ import qualified Data.IntMap.Strict as M
 
 import Data.Shape.Types
 
-
-newtype DimsE v e = DimsE {unDimsE :: M.IntMap (DimE v e)} deriving (Eq, Show, Functor)
+-- | Dimension metadata, stored into an 'IntMap' of 'DimE'.
+--
+-- The IntMap storage means that index metadata for an arbitrary dimension can be retrieved by name in logarithmic time.
+newtype DimsE v e = DimsE {
+  unDimsE :: M.IntMap (DimE v e)
+  } deriving (Eq, Show, Functor)
 
 instance Shape (DimsE v e) where
   dim (DimsE de) = map (dimE . snd) $ M.toList de 
@@ -61,8 +65,8 @@ newtype Dd = Dd {
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
 data Sd v e = Sd {
-      -- | Cumulative array (# nonzero entries per degree of freedom). Not all storage formats (e.g. COO for rank-2 tensors) need this information. One can also view this array as storing the location in the Idx array where each segment begins.
-      sCml :: Maybe (v e)
+      -- | Location in the sIdx array where each segment begins. Not all storage formats (e.g. COO for rank-2 tensors) need this information, hence it's wrapped in a Maybe.
+      sPtr :: Maybe (v e)
       -- | Index array (indices of nonzero entries)
     , sIdx :: v e
       -- | Dimensionality 

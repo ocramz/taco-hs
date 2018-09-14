@@ -61,24 +61,12 @@ import Data.Shape.Types
 --   , Z, (:#), (:.))
 import Data.Dim.Generic (Dd(..), Sd(..), DimE(..), DimsE(..), fromListDimsE, denseDimE, sparseDimE)
 
-
--- -- | Covariant indices, contravariant indices, container type, element type
--- data Tensor i j v e where
---   Tensor :: 
---        Sh n v i                    
---     -> Sh n v i  
---     -> v e  
---     -> Tensor (Sh n v i) (Sh n v i) v e
-
--- | Index type, container type, element type
+-- | Container type, element type
 data Tensor v e = T {
-    coIx :: DimsE v e
-  , contraIx :: DimsE v e
-  , tData :: v e
+    coIx :: DimsE v e  -- ^ Covariant indices
+  , contraIx :: DimsE v e  -- ^ Contravariant indices
+  , tData :: v e  -- ^ Tensor nonzero entries
   } deriving (Eq, Functor)
-
--- instance Functor v => Functor (Tensor v) where
---   fmap f (T shi shj v) = T shi shj (f <$> v)
 
 instance Show (Tensor v e) where
   show (T shco shcontra _) =
@@ -91,7 +79,7 @@ mkDenseV v = T (fromListDimsE [denseDimE n]) (fromListDimsE []) v
   where
     n = length v
 
--- -- | Number of nonzero entries in the tensor data
+-- | Number of nonzero entries in the tensor data
 nnz :: Foldable v => Tensor v e -> Int
 nnz = length . tData
 
