@@ -59,7 +59,7 @@ import Data.Shape.Types
 --   , rank
 --   , dim
 --   , Z, (:#), (:.))
-import Data.Dim.Generic (Dd(..), Sd(..), DimE(..), DimsE(..), fromListDimsE, denseDimE, sparseDimE)
+import Data.Dim.Generic
 
 -- -- | Container type, element type
 -- data Tensor v e = T {
@@ -67,6 +67,13 @@ import Data.Dim.Generic (Dd(..), Sd(..), DimE(..), DimsE(..), fromListDimsE, den
 --   , contraIx :: DimsE v e  -- ^ Contravariant indices
 --   , tData :: v e  -- ^ Tensor nonzero entries
 --   } deriving (Eq, Functor)
+
+data Tensor v e = T {
+    tIx :: Variance v
+  , tData :: v e  } deriving (Functor)
+
+instance Eq (Tensor v e) where
+
 
 -- instance Show (Tensor v e) where
 --   show (T shco shcontra _) =

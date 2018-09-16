@@ -5,5 +5,4 @@ module Data.Shape
   -- )
   where
 
-import Data.Shape.Dynamic.Named -- (Sh(..), mkSh, DimE, shDiff)
 import Data.Shape.Types

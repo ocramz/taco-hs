@@ -1,4 +1,4 @@
-{-# language DeriveFunctor #-}
+{-# language DeriveFunctor, UndecidableInstances #-}
 {-|
 Module      : Data.Dim.Generic
 Description : Dimension data, parametrized by an arbitrary container type
@@ -12,6 +12,8 @@ Here is a longer description of this module, containing some
 commentary with @some markup@.
 -}
 module Data.Dim.Generic where
+
+import Data.Int (Int32(..), Int64(..))
 
 -- import qualified Data.IntMap.Strict as M
 import Data.List.NonEmpty (NonEmpty(..), fromList, toList)
@@ -29,47 +31,75 @@ import Data.Shape.Types
 --   dim (DimsE de) = map (dimE . snd) $ M.toList de 
 --   rank = product . dim
 
--- fromListDimsE :: [DimE v e] -> DimsE v e
--- fromListDimsE = DimsE . M.fromList . indexed
 
--- mapKeys :: (M.Key -> M.Key) -> DimsE v e -> DimsE v e
--- mapKeys f (DimsE de) = DimsE $ M.mapKeys f de
-
--- indexed :: [a] -> [(M.Key, a)]
--- indexed = zip [0 .. ]
 
 
 -- | Variance annotation
-data Variance v e =
-  CoVar (NonEmpty (DimE v e)) -- ^ Only covariant indices
-  | ContraVar (NonEmpty (DimE v e)) -- ^ Only contravariant indices
-  | BothVar (NonEmpty (DimE v e)) (NonEmpty (DimE v e)) -- ^ Both variant and contravariant indices
-  deriving (Eq, Show)
+data Variance v =
+  CoVar (NonEmpty (DimE v)) -- ^ Only covariant indices
+  | ContraVar (NonEmpty (DimE v)) -- ^ Only contravariant indices
+  | BothVar (NonEmpty (DimE v)) (NonEmpty (DimE v)) -- ^ Both variant and contravariant indices
+  deriving (Show)
 
+-- | Semantic function for 'Variance' metadata (like 'either' for 'Either')
+variance :: (NonEmpty (DimE v) -> p)
+         -> (NonEmpty (DimE v) -> p)
+         -> (NonEmpty (DimE v) -> NonEmpty (DimE v) -> p)
+         -> Variance v
+         -> p
+variance f g h v = case v of
+  CoVar n -> f n
+  ContraVar n -> g n
+  BothVar m n -> h m n
+
+instance Eq (v Int) => Eq (Variance v) where
+  CoVar v1 == CoVar v2 = v1 == v2
+  ContraVar v1 == ContraVar v2 = v1 == v2
+  BothVar u1 v1 == BothVar u2 v2 = u1 == u2 && v1 == v2
+  _ == _ = False
+
+mkVector :: DimE v -> Variance v
+mkVector ixco = CoVar (fromList [ixco])
+mkCoVector :: DimE v -> Variance v
+mkCoVector ixcontra = ContraVar (fromList [ixcontra])
+mkMatrix :: DimE v -> DimE v -> Variance v
+mkMatrix ixco ixcontra = BothVar (fromList [ixco]) (fromList [ixcontra])
+
+instance TShape (Variance v) where
+  tdim sh = case sh of
+    CoVar ne -> (toDims ne, [])
+    ContraVar ne -> ([], toDims ne)
+    BothVar neco necontra -> (toDims neco, toDims necontra)
+
+toDims :: NonEmpty (DimE v) -> [Int]
+toDims ne = dimE `map` toList ne
 
 -- | Contraction indices
 newtype CIx = CIx (NonEmpty Int) deriving (Eq, Show)
 
   
 -- | Tensor dimensions can be either dense or sparse
-newtype DimE v e = DimE {
-  unDimE :: Either Dd (Sd v e)
-  } deriving (Eq, Functor)
+newtype DimE v = DimE {
+  unDimE :: Either Dd (Sd v)
+  }
 
-dimE :: DimE v e -> Int
+instance Eq (v Int) => Eq (DimE v) where
+  DimE d1 == DimE d2 = d1 == d2
+
+dimE :: DimE v -> Int
 dimE (DimE ei) = either dDim sDim ei
 
-instance Show (DimE v e) where
+instance Show (DimE v) where
   show (DimE ei) = either shd shs ei where
     shd (Dd n) = unwords ["dense :", show n]
     shs (Sd _ _ n) = unwords ["sparse :", show n]
 
 -- | Construct a dense DimE
-denseDimE :: Int  -> DimE v e
+denseDimE :: Int  -> DimE v
 denseDimE = DimE . Left . Dd 
 
 -- | Construct a sparse DimE
-sparseDimE :: Maybe (v e) -> v e -> Int -> DimE v e
+sparseDimE :: Maybe (v Int) -> v Int -> Int -> DimE v
 sparseDimE sv ixv n = DimE (Right (Sd sv ixv n))
 
 
@@ -80,14 +110,17 @@ newtype Dd = Dd {
   } deriving (Eq)
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
-data Sd v e = Sd {
+data Sd v = Sd {
       -- | Location in the sIdx array where each segment begins. Not all storage formats (e.g. COO for rank-2 tensors) need this information, hence it's wrapped in a Maybe.
-      sPtr :: Maybe (v e)
+      sPtr :: Maybe (v Int)
       -- | Index array (indices of nonzero entries)
-    , sIdx :: v e
+    , sIdx :: v Int
       -- | Dimensionality 
     , sDim :: Int
-    } deriving (Eq, Functor)
+    }
+
+instance Eq (v Int) => Eq (Sd v) where
+  Sd p1 i1 d1 == Sd p2 i2 d2 = p1 == p2 && i1 == i2 && d1 == d2
 
 -- dim :: Integral i => Either (Dd i) (Sd v i) -> Int
 -- dim = fromIntegral . either dDim sDim 
@@ -95,6 +128,6 @@ data Sd v e = Sd {
 instance Show Dd where
   show (Dd n) = unwords ["D", show n]
 
-instance (Show (v i), Show i) => Show (Sd v i) where
+instance Show (Sd v) where
   show (Sd _ _ sdim) = unwords ["S", show sdim]
 

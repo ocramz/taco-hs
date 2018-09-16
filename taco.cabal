@@ -31,7 +31,6 @@ library
   other-modules:       Data.Shape.Static
                        Data.Shape.Static.Rank           
                        Data.Shape.Dynamic
-                       Data.Shape.Dynamic.Named
                        Data.Tensor.Internal.MGraph
                        Data.Dim
                        Data.Dim.Types
