@@ -78,15 +78,9 @@ data Tensor v i e = T {
 --     unwords ["covariant:", show shco,
 --              "contravariant:", show shcontra]
 
-
--- -- mkDenseV :: Foldable v => v e -> Tensor v e
--- -- mkDenseV v = T (fromListDimsE [denseDimE n]) (fromListDimsE []) v
--- --   where
--- --     n = length v
-
--- -- | Number of nonzero entries in the tensor data
--- nnz :: Foldable v => Tensor v e -> Int
--- nnz = length . tData
+-- | Number of nonzero entries in the tensor data
+nnz :: Foldable v => Tensor v i e -> Int
+nnz = length . tData
 
 
 
