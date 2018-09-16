@@ -8,30 +8,19 @@ Maintainer  : ocramz fripost org
 Stability   : experimental
 Portability : POSIX
 
-Here is a longer description of this module, containing some
-commentary with @some markup@.
+This module contains types and construction/access functions for tensor dimension metadata which are declared to be polymorphic in the container type (i.e. could be lists, vectors etc.).
 -}
-module Data.Dim.Generic where
+module Data.Dim.Generic (
+    Variance(..)
+  , DimE(..), dimE, denseDimE, sparseDimE
+  , Dd(..), Sd(..)
+  , mkVector, mkCoVector, mkMatrix
+  ) where
 
 import Data.Int (Int32(..), Int64(..))
-
--- import qualified Data.IntMap.Strict as M
 import Data.List.NonEmpty (NonEmpty(..), fromList, toList)
 
 import Data.Shape.Types
-
--- | Dimension metadata, stored into an 'IntMap' of 'DimE'.
---
--- The IntMap storage means that index metadata for an arbitrary dimension can be retrieved by name in logarithmic time.
--- newtype DimsE v e = DimsE {
---   unDimsE :: M.IntMap (DimE v e)
---   } deriving (Eq, Show, Functor)
-
--- instance Shape (DimsE v e) where
---   dim (DimsE de) = map (dimE . snd) $ M.toList de 
---   rank = product . dim
-
-
 
 
 -- | Variance annotation
@@ -41,38 +30,36 @@ data Variance v i =
   | BothVar (NonEmpty (DimE v i)) (NonEmpty (DimE v i)) -- ^ Both variant and contravariant indices
   deriving (Eq, Show)
 
--- -- | Semantic function for 'Variance' metadata (like 'either' for 'Either')
+-- | Semantic function for 'Variance' metadata (like 'either' for 'Either')
 -- variance :: (NonEmpty (DimE v) -> p)
 --          -> (NonEmpty (DimE v) -> p)
 --          -> (NonEmpty (DimE v) -> NonEmpty (DimE v) -> p)
 --          -> Variance v
 --          -> p
--- variance f g h v = case v of
---   CoVar n -> f n
---   ContraVar n -> g n
---   BothVar m n -> h m n
+variance f g h v = case v of
+  CoVar n -> f n
+  ContraVar n -> g n
+  BothVar m n -> h m n
 
--- instance Eq (v Int) => Eq (Variance v) where
---   CoVar v1 == CoVar v2 = v1 == v2
---   ContraVar v1 == ContraVar v2 = v1 == v2
---   BothVar u1 v1 == BothVar u2 v2 = u1 == u2 && v1 == v2
---   _ == _ = False
 
--- mkVector :: DimE v -> Variance v
--- mkVector ixco = CoVar (fromList [ixco])
--- mkCoVector :: DimE v -> Variance v
--- mkCoVector ixcontra = ContraVar (fromList [ixcontra])
--- mkMatrix :: DimE v -> DimE v -> Variance v
--- mkMatrix ixco ixcontra = BothVar (fromList [ixco]) (fromList [ixcontra])
+-- | A vector has a single covariant index
+mkVector :: DimE v i -> Variance v i
+mkVector ixco = CoVar (fromList [ixco])
+-- | A co-vector has a single contravariant index
+mkCoVector :: DimE v i -> Variance v i
+mkCoVector ixcontra = ContraVar (fromList [ixcontra])
+-- | A matrix has one covariant and one contravariant index
+mkMatrix :: DimE v i -> DimE v i -> Variance v i
+mkMatrix ixco ixcontra = BothVar (fromList [ixco]) (fromList [ixcontra])
 
--- instance TShape (Variance v i) where
---   tdim sh = case sh of
---     CoVar ne -> (toDims ne, [])
---     ContraVar ne -> ([], toDims ne)
---     BothVar neco necontra -> (toDims neco, toDims necontra)
+instance Integral i => TShape (Variance v i) where
+  tdim sh = case sh of
+    CoVar ne -> (toDims ne, [])
+    ContraVar ne -> ([], toDims ne)
+    BothVar neco necontra -> (toDims neco, toDims necontra)
 
--- toDims :: NonEmpty (DimE v) -> [Int]
-toDims ne = dimE `map` toList ne
+toDims :: Integral i => NonEmpty (DimE v i) -> [Int]
+toDims ne = (fromIntegral . dimE) `map` toList ne
 
 -- | Contraction indices
 newtype CIx = CIx (NonEmpty Int) deriving (Eq, Show)
@@ -92,11 +79,11 @@ instance Show i => Show (DimE v i) where
     shs (Sd _ _ n) = unwords ["sparse :", show n]
 
 -- | Construct a dense DimE
--- denseDimE :: Int  -> DimE v i
+denseDimE :: i -> DimE v i
 denseDimE = DimE . Left . Dd 
 
 -- | Construct a sparse DimE
--- sparseDimE :: Maybe (v Int) -> v Int -> Int -> DimE v
+sparseDimE :: Maybe (v i) -> v i -> i -> DimE v i
 sparseDimE sv ixv n = DimE (Right (Sd sv ixv n))
 
 
@@ -115,12 +102,6 @@ data Sd v i = Sd {
       -- | Dimensionality 
     , sDim :: i
     } deriving (Eq)
-
--- instance Eq (v Int) => Eq (Sd v) where
---   Sd p1 i1 d1 == Sd p2 i2 d2 = p1 == p2 && i1 == i2 && d1 == d2
-
--- dim :: Integral i => Either (Dd i) (Sd v i) -> Int
--- dim = fromIntegral . either dDim sDim 
 
 instance Show i => Show (Dd i) where
   show (Dd n) = unwords ["D", show n]
