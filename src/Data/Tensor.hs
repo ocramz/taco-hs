@@ -61,48 +61,52 @@ import Data.Shape.Types
 --   , Z, (:#), (:.))
 import Data.Dim.Generic (Dd(..), Sd(..), DimE(..), DimsE(..), fromListDimsE, denseDimE, sparseDimE)
 
--- | Container type, element type
-data Tensor v e = T {
-    coIx :: DimsE v e  -- ^ Covariant indices
-  , contraIx :: DimsE v e  -- ^ Contravariant indices
-  , tData :: v e  -- ^ Tensor nonzero entries
-  } deriving (Eq, Functor)
+-- -- | Container type, element type
+-- data Tensor v e = T {
+--     coIx :: DimsE v e  -- ^ Covariant indices
+--   , contraIx :: DimsE v e  -- ^ Contravariant indices
+--   , tData :: v e  -- ^ Tensor nonzero entries
+--   } deriving (Eq, Functor)
 
-instance Show (Tensor v e) where
-  show (T shco shcontra _) =
-    unwords ["covariant:", show shco,
-             "contravariant:", show shcontra]
-
-
-mkDenseV :: Foldable v => v e -> Tensor v e
-mkDenseV v = T (fromListDimsE [denseDimE n]) (fromListDimsE []) v
-  where
-    n = length v
-
--- | Number of nonzero entries in the tensor data
-nnz :: Foldable v => Tensor v e -> Int
-nnz = length . tData
+-- instance Show (Tensor v e) where
+--   show (T shco shcontra _) =
+--     unwords ["covariant:", show shco,
+--              "contravariant:", show shcontra]
 
 
+-- -- mkDenseV :: Foldable v => v e -> Tensor v e
+-- -- mkDenseV v = T (fromListDimsE [denseDimE n]) (fromListDimsE []) v
+-- --   where
+-- --     n = length v
+
+-- -- | Number of nonzero entries in the tensor data
+-- nnz :: Foldable v => Tensor v e -> Int
+-- nnz = length . tData
 
 
--- | Density of nonzero entries
-density :: (Fractional a, Foldable v) => Tensor v e -> a
-density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
 
--- | Maximum number of elements
-maxNElems :: Tensor v e -> Int
-maxNElems t = Prelude.product pco * Prelude.product pcontra where
-  (pco, pcontra) = tdim t
 
--- | Tensor dimensions: (covariant, contravariant)
-tdim :: Tensor v e -> ([Int], [Int])
-tdim = dim . coIx &&& dim . contraIx
+-- -- | Density of nonzero entries
+-- density :: (Fractional a, Foldable v) => Tensor v e -> a
+-- density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
 
--- | Tensor rank: (covariant, contravariant)
-trank :: Tensor v e -> (Int, Int)
-trank t = (length co, length contra) where
-  (co, contra) = tdim t
+-- -- | Maximum number of elements
+-- maxNElems :: Tensor v e -> Int
+-- maxNElems t = Prelude.product pco * Prelude.product pcontra where
+--   (pco, pcontra) = tdim t
+
+-- -- | Tensor dimensions: (covariant, contravariant)
+-- tdim :: Tensor v e -> ([Int], [Int])
+-- tdim = dim . coIx &&& dim . contraIx
+
+-- -- | Tensor rank: (covariant, contravariant)
+-- trank :: Tensor v e -> (Int, Int)
+-- trank t = (length co, length contra) where
+--   (co, contra) = tdim t
+
+
+
+
 
 
 -- -- | Safe tensor construction; for now it only compares the length of the entry vector with the upper bound on the tensor size (i.e. considering all dimensions as dense). Can be refined by computing effective nonzeros along sparse dimensions

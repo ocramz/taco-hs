@@ -6,7 +6,7 @@ homepage:            https://github.com/ocramz/taco-hs
 license:             BSD3
 license-file:        LICENSE
 author:              Marco Zocca
-maintainer:          zocca.marco gmail
+maintainer:          ocramz fripost org
 copyright:           2018 Marco Zocca
 category:            Numeric
 build-type:          Simple
@@ -20,6 +20,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Language.Taco.Backend.Accelerate
   build-depends:       base >= 4.7 && < 5
+                     , taco
                      , accelerate
 
 

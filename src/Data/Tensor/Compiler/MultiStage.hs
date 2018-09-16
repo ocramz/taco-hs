@@ -27,8 +27,9 @@ evalE1 expr = case expr of
 
 -- k1 :: a -> E1 a
 -- k1 = K1
--- dot :: a -> a -> E1 a
--- dot = Dot
+
+dot :: a -> a -> E1 a
+dot = Dot
 
 -- | Internal representation
 data E2 a =
@@ -42,6 +43,9 @@ evalE2 z expr = case expr of
   K2 x -> x
   ZipWith op v1 v2 -> zipWith (evalBinOp op) (evalE2 z v1) (evalE2 z v2)
   Fold op v -> [foldr (evalBinOp op) z (evalE2 z v)]
+
+evalE2' :: E2 [Double] -> [Double]
+evalE2' = evalE2 0  
 
 -- | E2 combinators
 k2 :: a -> E2 a

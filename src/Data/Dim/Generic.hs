@@ -13,26 +13,42 @@ commentary with @some markup@.
 -}
 module Data.Dim.Generic where
 
-import qualified Data.IntMap.Strict as M
+-- import qualified Data.IntMap.Strict as M
+import Data.List.NonEmpty (NonEmpty(..), fromList, toList)
 
 import Data.Shape.Types
 
 -- | Dimension metadata, stored into an 'IntMap' of 'DimE'.
 --
 -- The IntMap storage means that index metadata for an arbitrary dimension can be retrieved by name in logarithmic time.
-newtype DimsE v e = DimsE {
-  unDimsE :: M.IntMap (DimE v e)
-  } deriving (Eq, Show, Functor)
+-- newtype DimsE v e = DimsE {
+--   unDimsE :: M.IntMap (DimE v e)
+--   } deriving (Eq, Show, Functor)
 
-instance Shape (DimsE v e) where
-  dim (DimsE de) = map (dimE . snd) $ M.toList de 
-  rank = product . dim
+-- instance Shape (DimsE v e) where
+--   dim (DimsE de) = map (dimE . snd) $ M.toList de 
+--   rank = product . dim
 
-fromListDimsE :: [DimE v e] -> DimsE v e
-fromListDimsE = DimsE . M.fromList . indexed
+-- fromListDimsE :: [DimE v e] -> DimsE v e
+-- fromListDimsE = DimsE . M.fromList . indexed
 
-indexed :: [a] -> [(M.Key, a)]
-indexed = zip [0 .. ]
+-- mapKeys :: (M.Key -> M.Key) -> DimsE v e -> DimsE v e
+-- mapKeys f (DimsE de) = DimsE $ M.mapKeys f de
+
+-- indexed :: [a] -> [(M.Key, a)]
+-- indexed = zip [0 .. ]
+
+
+-- | Variance annotation
+data Variance v e =
+  CoVar (NonEmpty (DimE v e)) -- ^ Only covariant indices
+  | ContraVar (NonEmpty (DimE v e)) -- ^ Only contravariant indices
+  | BothVar (NonEmpty (DimE v e)) (NonEmpty (DimE v e)) -- ^ Both variant and contravariant indices
+  deriving (Eq, Show)
+
+
+-- | Contraction indices
+newtype CIx = CIx (NonEmpty Int) deriving (Eq, Show)
 
   
 -- | Tensor dimensions can be either dense or sparse

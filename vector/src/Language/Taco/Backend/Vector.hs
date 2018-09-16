@@ -5,6 +5,11 @@ module Language.Taco.Backend.Vector where
 import qualified Data.Vector as V 
 import qualified Data.Vector.Mutable as VM
 
+import Control.Monad.ST
+
+
+
+
 
 -- | consume a list rather than a vector (fewer large allocations wrt Vector)
 csPtrV' :: Int -> [Int] -> V.Vector Int
