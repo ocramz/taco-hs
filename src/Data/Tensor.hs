@@ -68,11 +68,12 @@ import Data.Dim.Generic
 --   , tData :: v e  -- ^ Tensor nonzero entries
 --   } deriving (Eq, Functor)
 
-data Tensor v e = T {
-    tIx :: Variance v
-  , tData :: v e  } deriving (Functor)
+data Tensor v i e = T {
+    tIx :: Variance v i
+  , tData :: v e } deriving (Functor)
 
-instance Eq (Tensor v e) where
+-- instance (Eq (v e), Eq (v Int)) => Eq (Tensor v e) where
+--   T i1 d1 == T i2 d2 = i1 == i2 && d1 == d2
 
 
 -- instance Show (Tensor v e) where
