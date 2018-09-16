@@ -24,15 +24,13 @@ library
                        Data.Tensor.Compiler.Free
                        Data.Tensor.Compiler.MultiStage
                        Data.Tensor.Compiler.Edsl2Edsl                       
-                       Data.Dim.Generic
+                       Data.Dim
                        Data.Shape
                        Data.Shape.Types                         
                        Data.Tensor.Exception
   other-modules:       Data.Shape.Static
                        Data.Shape.Static.Rank           
-                       Data.Shape.Dynamic
                        Data.Tensor.Internal.MGraph
-                       Data.Dim
                        Data.Dim.Types
   build-depends:       base >= 4.7 && < 5
                      , containers

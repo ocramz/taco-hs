@@ -1,5 +1,4 @@
-{-# language GADTs, TypeOperators, DataKinds, KindSignatures #-}
-{-# language FlexibleInstances, RankNTypes #-}
+{-# language GADTs, TypeOperators, DataKinds, KindSignatures, FlexibleInstances, RankNTypes #-}
 {-# language TypeFamilies #-}
 {-# language PolyKinds #-}
 {-# language MultiParamTypeClasses #-}
@@ -20,9 +19,6 @@ import qualified Data.Vector.Unboxed as VU
 import qualified Data.Dim as Dim
 
 
-
-
- 
 data sh :# e -- dense
 data sh :. e -- sparse
 infixr 5 :#
@@ -36,38 +32,44 @@ data instance Dimz (D n)
 data instance Dimz (S n)
 
 -- | A shape type with statically typed dimensions  
-data Sh sh where
-  Z :: Sh '[]
+data Sh v sh where
+  Z :: Sh v '[]
   -- | Constructor for a dense dimension
-  D :: KnownNat n => Dim.Dd Int32 -> Sh sh -> Sh (D n ': sh)
+  D :: KnownNat n => Dim.Dd Int32 -> Sh v sh -> Sh v (D n ': sh)
   -- | Constructor for a sparse dimension
-  S :: KnownNat n => Dim.Sd Int32 -> Sh sh -> Sh (S n ': sh)
+  S :: KnownNat n => Dim.Sd v Int32 -> Sh v sh -> Sh v (S n ': sh)
 
 -- data Sized' (n :: '[Dimz Nat]) t = Sized' t   -- this doesn't work without TypeInType
 
 -- | 
-data Sized n c t = Sized (Sh n) (c t) deriving (Show)
+-- data Sized n c t = Sized (Sh n) (c t) deriving (Show)
 
-t0 :: Sized '[D 3, D 2] [] Int
-t0 = Sized (Dim.Dd 3 `D` (Dim.Dd 2 `D` Z)) [1 .. 6]
+-- t0 :: Sized '[D 3, D 2] [] Int
+-- t0 = Sized (Dim.Dd 3 `D` (Dim.Dd 2 `D` Z)) [1 .. 6]
     
   
   
-instance Show (Sh sh) where
-  show Z = ""
-  show (D (Dim.Dd m) sh) = unwords [show m, show sh]
-  show (S (Dim.Sd _ ix n) sh) = showSparse ix n <> show sh where
-    showSparse ixx nn = show (VU.length ixx, nn)
+-- instance Show (Sh sh) where
+--   show Z = ""
+--   show (D (Dim.Dd m) sh) = unwords [show m, show sh]
+--   show (S (Dim.Sd _ ix n) sh) = showSparse ix n <> show sh where
+--     showSparse ixx nn = show (VU.length ixx, nn)
 
-shToList :: Sh ds -> [Int32]
-shToList Z = []
-shToList (x `D` xs) = Dim.dDim x : shToList xs
-shToList (x `S` xs) = Dim.sDim x : shToList xs
-
-
+-- shToList :: Sh ds -> [Int32]
+-- shToList Z = []
+-- shToList (x `D` xs) = Dim.dDim x : shToList xs
+-- shToList (x `S` xs) = Dim.sDim x : shToList xs
 
 
--- * `dimensions`
+
+
+
+
+
+
+
+
+-- * from the `dimensions` package
 
 -- data Sh (ds :: [Nat]) where
 --   Z :: Sh '[]

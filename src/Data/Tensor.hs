@@ -59,7 +59,7 @@ import Data.Shape.Types
 --   , rank
 --   , dim
 --   , Z, (:#), (:.))
-import Data.Dim.Generic
+import Data.Dim
 
 -- -- | Container type, element type
 -- data Tensor v e = T {

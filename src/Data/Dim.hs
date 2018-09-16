@@ -1,45 +1,121 @@
 {-|
 Module      : Data.Dim
-Description : Dimension data, stored as a Vector.Unboxed
+Description : Dimension data
 Copyright   : (c) Marco Zocca, 2018
 License     : GPL-3
 Maintainer  : ocramz fripost org
 Stability   : experimental
 Portability : POSIX
 
-Here is a longer description of this module, containing some
-commentary with @some markup@.
+This module contains types and construction/access functions for tensor dimension metadata which are declared to be polymorphic in the container type (i.e. could be lists, vectors etc.).
+Note : no rank or dimensionality information is known at compile time, that is, size mismatch errors will have to be raised at runtime.
 -}
-module Data.Dim where
+module Data.Dim (
+  -- * Variance annotation
+    Variance(..), variance
+  -- ** Convenience constructors
+  , mkVector, mkCoVector, mkMatrix    
+  -- * Dimension metadata
+  , DimE(..), dimE, denseDimE, sparseDimE
+  , Dd(..), Sd(..)
 
-import Data.Vector.Unboxed as V
--- import qualified Data.Dim.Generic as DG
+  ) where
 
--- * Dimension metadata
+import Data.Int (Int32(..), Int64(..))
+import Data.List.NonEmpty (NonEmpty(..), fromList, toList)
 
--- data family Dim a
--- data instance Dim (Dd i)
--- data instance Dim (Sd i)
+import Data.Shape.Types
 
--- | To define a /dense/ dimension we only need the dimensionality parameter
-newtype Dd i = Dd { dDim :: i } deriving (Eq, Show)
+
+-- | Variance annotation
+data Variance v i =
+  CoVar (NonEmpty (DimE v i)) -- ^ Only covariant indices
+  | ContraVar (NonEmpty (DimE v i)) -- ^ Only contravariant indices
+  | BothVar (NonEmpty (DimE v i)) (NonEmpty (DimE v i)) -- ^ Both variant and contravariant indices
+  deriving (Eq, Show)
+
+-- | Semantic function for 'Variance' metadata (like 'either' for 'Either')
+-- variance :: (NonEmpty (DimE v) -> p)
+--          -> (NonEmpty (DimE v) -> p)
+--          -> (NonEmpty (DimE v) -> NonEmpty (DimE v) -> p)
+--          -> Variance v
+--          -> p
+variance f g h v = case v of
+  CoVar n -> f n
+  ContraVar n -> g n
+  BothVar m n -> h m n
+
+
+-- | A vector has a single covariant index
+mkVector :: DimE v i -> Variance v i
+mkVector ixco = CoVar (fromList [ixco])
+-- | A co-vector has a single contravariant index
+mkCoVector :: DimE v i -> Variance v i
+mkCoVector ixcontra = ContraVar (fromList [ixcontra])
+-- | A matrix has one covariant and one contravariant index
+mkMatrix :: DimE v i -> DimE v i -> Variance v i
+mkMatrix ixco ixcontra = BothVar (fromList [ixco]) (fromList [ixcontra])
+
+instance Integral i => TShape (Variance v i) where
+  tdim sh = case sh of
+    CoVar ne -> (toDims ne, [])
+    ContraVar ne -> ([], toDims ne)
+    BothVar neco necontra -> (toDims neco, toDims necontra)
+
+toDims :: Integral i => NonEmpty (DimE v i) -> [Int]
+toDims ne = (fromIntegral . dimE) `map` toList ne
+
+-- | Contraction indices
+newtype CIx = CIx (NonEmpty Int) deriving (Eq, Show)
+
+  
+-- | Tensor dimensions can be either dense or sparse
+newtype DimE v i = DimE {
+  unDimE :: Either (Dd i) (Sd v i)
+  } deriving (Eq)
+
+dimE :: DimE v i -> i
+dimE (DimE ei) = either dDim sDim ei
+
+instance Show i => Show (DimE v i) where
+  show (DimE ei) = either shd shs ei where
+    shd (Dd n) = unwords ["dense :", show n]
+    shs (Sd _ _ n) = unwords ["sparse :", show n]
+
+-- | Construct a dense DimE
+denseDimE :: i -> DimE v i
+denseDimE = DimE . Left . Dd 
+
+-- | Construct a sparse DimE
+sparseDimE :: Maybe (v i) -> v i -> i -> DimE v i
+sparseDimE sv ixv n = DimE (Right (Sd sv ixv n))
+
+
+-- | To define a /dense/ dimension we only need the dimensionality parameter (an integer)
+newtype Dd i = Dd {
+   -- | Dimensionality
+    dDim :: i
+  } deriving (Eq)
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
-data Sd i = Sd {
-      -- | Cumulative array (# nonzero entries per degree of freedom). Not all storage formats (e.g. COO for rank-2 tensors) need this information.
-      sCml :: Maybe (V.Vector i)
+data Sd v i = Sd {
+      -- | Location in the sIdx array where each segment begins. Not all storage formats (e.g. COO for rank-2 tensors) need this information, hence it's wrapped in a Maybe.
+      sPtr :: Maybe (v i)
       -- | Index array (indices of nonzero entries)
-    , sIdx :: V.Vector i
-      -- | Size of the tensor along this dimension
-    , sDim :: i } deriving (Eq, Show)
+    , sIdx :: v i
+      -- | Dimensionality 
+    , sDim :: i
+    } deriving (Eq)
 
- 
--- | A tensor dimension can be either dense or sparse.
---
--- Example: the CSR format is /dense/ in the first index (rows) and /sparse/ in the second index (columns)
+instance Show i => Show (Dd i) where
+  show (Dd n) = unwords ["D", show n]
 
-dim :: Either (Dd c) (Sd c) -> c
-dim = either dDim sDim
+instance Show i => Show (Sd v i) where
+  show (Sd _ _ sdim) = unwords ["S", show sdim]
+
+
+
+
 
 
   
