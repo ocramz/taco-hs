@@ -1,3 +1,4 @@
+{-# language LambdaCase #-}
 {-|
 Module      : Data.Dim
 Description : Dimension data
@@ -12,7 +13,7 @@ Note : no rank or dimensionality information is known at compile time, that is, 
 -}
 module Data.Dim (
   -- * Variance annotation
-    Variance(..), variance
+    Variance(..), coIx, contraIx
   -- ** Convenience constructors
   , mkVector, mkCoVector, mkMatrix    
   -- * Dimension metadata
@@ -34,16 +35,19 @@ data Variance v i =
   | BothVar (NonEmpty (DimE v i)) (NonEmpty (DimE v i)) -- ^ Both variant and contravariant indices
   deriving (Eq, Show)
 
--- | Semantic function for 'Variance' metadata (like 'either' for 'Either')
--- variance :: (NonEmpty (DimE v) -> p)
---          -> (NonEmpty (DimE v) -> p)
---          -> (NonEmpty (DimE v) -> NonEmpty (DimE v) -> p)
---          -> Variance v
---          -> p
-variance f g h v = case v of
-  CoVar n -> f n
-  ContraVar n -> g n
-  BothVar m n -> h m n
+-- | Get covariant indices
+coIx :: Variance v i -> Maybe (NonEmpty (DimE v i))
+coIx = \case
+  CoVar ne -> Just ne
+  BothVar ne _ -> Just ne
+  _ -> Nothing
+
+-- | Get contravariant indices
+contraIx :: Variance v i -> Maybe (NonEmpty (DimE v i))
+contraIx = \case
+  BothVar _ ne -> Just ne
+  ContraVar ne -> Just ne
+  _ -> Nothing
 
 
 -- | A vector has a single covariant index
