@@ -85,23 +85,17 @@ nnz = length . tData
 
 
 
--- -- | Density of nonzero entries
--- density :: (Fractional a, Foldable v) => Tensor v e -> a
--- density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
+-- | Density of nonzero entries
+density :: (Foldable v, Integral i, Fractional a) => Tensor v i e -> a
+density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
 
--- -- | Maximum number of elements
--- maxNElems :: Tensor v e -> Int
--- maxNElems t = Prelude.product pco * Prelude.product pcontra where
---   (pco, pcontra) = tdim t
+instance Integral i => TShape (Tensor v i e) where
+  tdim (T tvar _) = tdim tvar
 
--- -- | Tensor dimensions: (covariant, contravariant)
--- tdim :: Tensor v e -> ([Int], [Int])
--- tdim = dim . coIx &&& dim . contraIx
-
--- -- | Tensor rank: (covariant, contravariant)
--- trank :: Tensor v e -> (Int, Int)
--- trank t = (length co, length contra) where
---   (co, contra) = tdim t
+-- | Maximum number of elements
+maxNElems :: Integral i => Tensor v i e -> Int
+maxNElems t = product pco * product pcontra where
+  (pco, pcontra) = tdim t
 
 
 

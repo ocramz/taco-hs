@@ -17,8 +17,10 @@ class Shape t where
 
 
 class TShape t where
+  -- | Tensor dimensions: (covariant, contravariant)
   tdim :: t -> ([Int], [Int])
 
+-- | Tensor rank: (covariant, contravariant)
 trank :: TShape t => t -> (Int, Int)
 trank tt = (length co , length contra) where
   (co, contra) = tdim tt

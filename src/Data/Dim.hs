@@ -30,7 +30,7 @@ import Data.Shape.Types
 
 -- | Variance annotation
 data Variance v i =
-  CoVar (NonEmpty (DimE v i)) -- ^ Only covariant indices
+    CoVar (NonEmpty (DimE v i)) -- ^ Only covariant indices
   | ContraVar (NonEmpty (DimE v i)) -- ^ Only contravariant indices
   | BothVar (NonEmpty (DimE v i)) (NonEmpty (DimE v i)) -- ^ Both variant and contravariant indices
   deriving (Eq, Show)
@@ -50,12 +50,12 @@ contraIx = \case
   _ -> Nothing
 
 
--- | A vector has a single covariant index
+-- | A vector has a single contravariant index
 mkVector :: DimE v i -> Variance v i
-mkVector ixco = CoVar (fromList [ixco])
--- | A co-vector has a single contravariant index
+mkVector ixco = ContraVar (fromList [ixco])
+-- | A co-vector has a single covariant index
 mkCoVector :: DimE v i -> Variance v i
-mkCoVector ixcontra = ContraVar (fromList [ixcontra])
+mkCoVector ixcontra = CoVar (fromList [ixcontra])
 -- | A matrix has one covariant and one contravariant index
 mkMatrix :: DimE v i -> DimE v i -> Variance v i
 mkMatrix ixco ixcontra = BothVar (fromList [ixco]) (fromList [ixcontra])
