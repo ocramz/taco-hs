@@ -15,7 +15,7 @@ module Data.Dim (
   -- * Variance annotation
     Variance(..), coIx, contraIx
   -- ** Convenience constructors
-  , mkVector, mkCoVector, mkMatrix    
+  , mkVarVector, mkVarCoVector, mkVarMatrix    
   -- * Dimension metadata
   , DimE(..), dimE, denseDimE, sparseDimE
   , Dd(..), Sd(..)
@@ -51,14 +51,14 @@ contraIx = \case
 
 
 -- | A vector has a single contravariant index
-mkVector :: DimE v i -> Variance v i
-mkVector ixco = ContraVar (fromList [ixco])
+mkVarVector :: DimE v i -> Variance v i
+mkVarVector ixco = ContraVar (fromList [ixco])
 -- | A co-vector has a single covariant index
-mkCoVector :: DimE v i -> Variance v i
-mkCoVector ixcontra = CoVar (fromList [ixcontra])
+mkVarCoVector :: DimE v i -> Variance v i
+mkVarCoVector ixcontra = CoVar (fromList [ixcontra])
 -- | A matrix has one covariant and one contravariant index
-mkMatrix :: DimE v i -> DimE v i -> Variance v i
-mkMatrix ixco ixcontra = BothVar (fromList [ixco]) (fromList [ixcontra])
+mkVarMatrix :: DimE v i -> DimE v i -> Variance v i
+mkVarMatrix ixco ixcontra = BothVar (fromList [ixco]) (fromList [ixcontra])
 
 instance Integral i => TShape (Variance v i) where
   tdim sh = case sh of
@@ -83,8 +83,8 @@ dimE (DimE ei) = either dDim sDim ei
 
 instance Show i => Show (DimE v i) where
   show (DimE ei) = either shd shs ei where
-    shd (Dd n) = unwords ["dense :", show n]
-    shs (Sd _ _ n) = unwords ["sparse :", show n]
+    shd (Dd n) = unwords ["D", show n]
+    shs (Sd _ _ n) = unwords ["S", show n]
 
 -- | Construct a dense DimE
 denseDimE :: i -> DimE v i
