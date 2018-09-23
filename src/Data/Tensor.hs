@@ -75,9 +75,6 @@ data Tensor v i e = T {
 
 instance Show i => Show (Tensor v i e) where
   show (T tv _) = unwords ["Variance :", show tv]
-  -- show (T shco shcontra _) =
-  --   unwords ["covariant:", show shco,
-  --            "contravariant:", show shcontra]
 
 -- | Number of nonzero entries in the tensor data
 nnz :: Foldable v => Tensor v i e -> Int
@@ -103,7 +100,7 @@ maxNElems t = product pco * product pcontra where
 -- constructors
 
 mkVectorD :: i -> v e -> Tensor v i e
-mkVectorD n v = T (mkVarVector (denseDimE n)) v
+mkVectorD n = T (mkVarVector (denseDimE n)) 
 
 
 

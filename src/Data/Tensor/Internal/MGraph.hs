@@ -13,16 +13,29 @@ MGraph is a multigraph (i.e. a graph in which each pair of nodes could be connec
 module Data.Tensor.Internal.MGraph where
 
 import qualified Data.Map.Strict as M
+import qualified Data.IntMap.Strict as IM
 import qualified Data.List.NonEmpty as NE
 
 
-data G a =
-  Node a
-  | Cons a (G a) deriving (Eq, Show)
+newtype G a = G (IM.IntMap [a]) deriving (Eq, Show)
 
-newtype MGraph l a = MGraph {
-  unMGraph :: M.Map l (G a)
-                         } deriving (Eq, Show)
+
+fromList :: [a] -> G a
+fromList xs = G $ IM.fromList $ zip [0 .. ] xs' where xs' = map pure xs
+
+size :: G a -> Int
+size (G im) = IM.size im  
+
+mapKeys :: (IM.Key -> IM.Key) -> G a -> G a
+mapKeys f (G im) = G $ IM.mapKeys f im
+
+
+pairAt i g1 g2 = undefined where
+  (sz1, sz2) = (size g1, size g2)
+  g2' = mapKeys (+ i) g2
+  
+
+
 
 
 

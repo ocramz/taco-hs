@@ -24,6 +24,7 @@ module Data.Dim (
 
 import Data.Int (Int32(..), Int64(..))
 import Data.List.NonEmpty (NonEmpty(..), fromList, toList)
+import qualified Data.IntMap as IM
 
 import Data.Shape.Types
 
