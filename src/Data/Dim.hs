@@ -54,6 +54,9 @@ fromList xs | null xs = Nothing
 Tensor product shorthand (Einstein notation) prescribes that only pairs of tensors with paired indices can be multiplied. In particular, in the index pair one index should be variant and the other contravariant.
 -}
 
+
+
+
 -- | Variance annotation
 newtype Variance v i = Variance {
   unV :: V (DimsE v i) } deriving (Eq, Show)
@@ -94,7 +97,10 @@ contraIx = \case
 -- mkVarCoVector ixcontra = CoVar <$> fromList [ixcontra]
 -- -- | A matrix has one covariant and one contravariant index
 -- mkVarMatrix :: DimE v i -> DimE v i -> Maybe (Variance v i)
-mkVarMatrix ixco ixcontra = BothVar <$> fromList [ixco] <*> fromList [ixcontra]
+-- mkVarMatrix ixco ixcontra =
+--   fmap Variance (BothVar <$> fromList [ixco] <*> fromList [ixcontra])
+
+
 
 instance Integral i => TShape (Variance v i) where
   tdim sh = case unV sh of

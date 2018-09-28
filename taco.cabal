@@ -23,7 +23,8 @@ library
                        Data.Tensor.Compiler.PHOAS.MultiInterpreter        
                        Data.Tensor.Compiler.Free
                        Data.Tensor.Compiler.MultiStage
-                       Data.Tensor.Compiler.Edsl2Edsl                       
+                       Data.Tensor.Compiler.Edsl2Edsl
+                       Data.Tensor.Compiler.LC                    
                        Data.Dim
                        Data.Shape
                        Data.Shape.Types                         
