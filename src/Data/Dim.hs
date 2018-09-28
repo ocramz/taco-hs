@@ -35,12 +35,22 @@ newtype DimsE v i = DimsE {
 mapKeys :: (IM.Key -> IM.Key) -> DimsE v i -> DimsE v i
 mapKeys f (DimsE im) = DimsE $ IM.mapKeys f im
 
+intersectionWithKey :: (IM.Key -> DimE v i1 -> DimE v i2 -> DimE v i3)
+                    -> DimsE v i1 -> DimsE v i2 -> DimsE v i3
+intersectionWithKey f (DimsE m1) (DimsE m2) = DimsE $ IM.intersectionWithKey f m1 m2
+
 toList :: DimsE v i -> [DimE v i]
 toList (DimsE im) = snd `map` IM.toList im
 
 fromList :: [DimE v i] -> Maybe (DimsE v i)
 fromList xs | null xs = Nothing
             | otherwise = Just . DimsE $ IM.fromList $ zip [0 ..] xs
+
+
+{- 
+Tensor product shorthand (Einstein notation) prescribes that only pairs of tensors with paired indices can be multiplied. In particular, in the index pair one index should be variant and the other contravariant.
+-}
+            
 
 -- | Variance annotation
 data Variance v i =
