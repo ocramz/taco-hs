@@ -1,4 +1,4 @@
-{-# language LambdaCase #-}
+{-# language LambdaCase, DeriveFunctor #-}
 {-|
 Module      : Data.Dim
 Description : Dimension data
@@ -16,7 +16,7 @@ module Data.Dim (
     Variance(..)
     , coIx, contraIx
   -- ** Convenience constructors
-  , mkVarVector, mkVarCoVector, mkVarMatrix    
+  -- , mkVarVector, mkVarCoVector, mkVarMatrix    
   -- * Dimension metadata
   , DimE(..), dimE, denseDimE, sparseDimE
   , Dd(..), Sd(..)
@@ -32,12 +32,15 @@ import Data.Shape.Types
 newtype DimsE v i = DimsE {
   unDimsE :: IM.IntMap (DimE v i) } deriving (Eq, Show)
 
+lookupDim :: DimsE v i -> IM.Key -> Maybe (DimE v i)
+lookupDim im i = IM.lookup i (unDimsE im)
+
 mapKeys :: (IM.Key -> IM.Key) -> DimsE v i -> DimsE v i
 mapKeys f (DimsE im) = DimsE $ IM.mapKeys f im
 
-intersectionWithKey :: (IM.Key -> DimE v i1 -> DimE v i2 -> DimE v i3)
-                    -> DimsE v i1 -> DimsE v i2 -> DimsE v i3
-intersectionWithKey f (DimsE m1) (DimsE m2) = DimsE $ IM.intersectionWithKey f m1 m2
+-- intersectionWithKey :: (IM.Key -> DimE v i1 -> DimE v i2 -> DimE v i3)
+--                     -> DimsE v i1 -> DimsE v i2 -> DimsE v i3
+-- intersectionWithKey f (DimsE m1) (DimsE m2) = DimsE $ IM.intersectionWithKey f m1 m2
 
 toList :: DimsE v i -> [DimE v i]
 toList (DimsE im) = snd `map` IM.toList im
@@ -50,42 +53,51 @@ fromList xs | null xs = Nothing
 {- 
 Tensor product shorthand (Einstein notation) prescribes that only pairs of tensors with paired indices can be multiplied. In particular, in the index pair one index should be variant and the other contravariant.
 -}
-            
 
 -- | Variance annotation
-data Variance v i =
-    CoVar (DimsE v i) -- ^ Only covariant indices
-  | ContraVar (DimsE v i) -- ^ Only contravariant indices
-  | BothVar (DimsE v i) (DimsE v i) -- ^ Both variant and contravariant indices
-  deriving (Eq, Show)
+newtype Variance v i = Variance {
+  unV :: V (DimsE v i) } deriving (Eq, Show)
+
+data V a =
+    CoVar a     -- ^ Only covariant indices 
+  | ContraVar a -- ^ Only contravariant indices
+  | BothVar a a -- ^ Both variant and contravariant indices
+  deriving (Eq, Show, Functor)            
+
+
+-- data Variance v i =
+--     CoVar (DimsE v i) -- ^ Only covariant indices 
+--   | ContraVar (DimsE v i) -- ^ Only contravariant indices
+--   | BothVar (DimsE v i) (DimsE v i) -- ^ Both variant and contravariant indices
+--   deriving (Eq, Show)
 
 -- | Get covariant indices
-coIx :: Variance v i -> Maybe (DimsE v i)
+-- coIx :: Variance v i -> Maybe (DimsE v i)
 coIx = \case
   CoVar ne -> Just ne
   BothVar ne _ -> Just ne
   _ -> Nothing
 
 -- | Get contravariant indices
-contraIx :: Variance v i -> Maybe (DimsE v i)
+-- contraIx :: Variance v i -> Maybe (DimsE v i)
 contraIx = \case
   BothVar _ ne -> Just ne
   ContraVar ne -> Just ne
   _ -> Nothing
 
 
--- | A vector has a single contravariant index
-mkVarVector :: DimE v i -> Maybe (Variance v i)
-mkVarVector ixco = ContraVar <$> fromList [ixco]
--- | A co-vector has a single covariant index
-mkVarCoVector :: DimE v i -> Maybe (Variance v i)
-mkVarCoVector ixcontra = CoVar <$> fromList [ixcontra]
--- | A matrix has one covariant and one contravariant index
-mkVarMatrix :: DimE v i -> DimE v i -> Maybe (Variance v i)
+-- -- | A vector has a single contravariant index
+-- mkVarVector :: DimE v i -> Maybe (Variance v i)
+-- mkVarVector ixco = ContraVar <$> fromList [ixco]
+-- -- | A co-vector has a single covariant index
+-- mkVarCoVector :: DimE v i -> Maybe (Variance v i)
+-- mkVarCoVector ixcontra = CoVar <$> fromList [ixcontra]
+-- -- | A matrix has one covariant and one contravariant index
+-- mkVarMatrix :: DimE v i -> DimE v i -> Maybe (Variance v i)
 mkVarMatrix ixco ixcontra = BothVar <$> fromList [ixco] <*> fromList [ixcontra]
 
 instance Integral i => TShape (Variance v i) where
-  tdim sh = case sh of
+  tdim sh = case unV sh of
     CoVar ne -> (toDims ne, [])
     ContraVar ne -> ([], toDims ne)
     BothVar neco necontra -> (toDims neco, toDims necontra)
