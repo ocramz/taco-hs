@@ -99,8 +99,8 @@ maxNElems t = product pco * product pcontra where
 
 -- constructors
 
-mkVectorD :: i -> v e -> Tensor v i e
-mkVectorD n = T (mkVarVector (denseDimE n)) 
+mkVectorD :: i -> v e -> Maybe (Tensor v i e)
+mkVectorD n xs = T <$> mkVarVector (denseDimE n) <*> pure xs
 
 
 

@@ -13,7 +13,8 @@ Note : no rank or dimensionality information is known at compile time, that is, 
 -}
 module Data.Dim (
   -- * Variance annotation
-    Variance(..), coIx, contraIx
+    Variance(..)
+    , coIx, contraIx
   -- ** Convenience constructors
   , mkVarVector, mkVarCoVector, mkVarMatrix    
   -- * Dimension metadata
@@ -23,28 +24,40 @@ module Data.Dim (
   ) where
 
 import Data.Int (Int32(..), Int64(..))
-import Data.List.NonEmpty (NonEmpty(..), fromList, toList)
+import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.IntMap as IM
 
 import Data.Shape.Types
 
+newtype DimsE v i = DimsE {
+  unDimsE :: IM.IntMap (DimE v i) } deriving (Eq, Show)
+
+mapKeys :: (IM.Key -> IM.Key) -> DimsE v i -> DimsE v i
+mapKeys f (DimsE im) = DimsE $ IM.mapKeys f im
+
+toList :: DimsE v i -> [DimE v i]
+toList (DimsE im) = snd `map` IM.toList im
+
+fromList :: [DimE v i] -> Maybe (DimsE v i)
+fromList xs | null xs = Nothing
+            | otherwise = Just . DimsE $ IM.fromList $ zip [0 ..] xs
 
 -- | Variance annotation
 data Variance v i =
-    CoVar (NonEmpty (DimE v i)) -- ^ Only covariant indices
-  | ContraVar (NonEmpty (DimE v i)) -- ^ Only contravariant indices
-  | BothVar (NonEmpty (DimE v i)) (NonEmpty (DimE v i)) -- ^ Both variant and contravariant indices
+    CoVar (DimsE v i) -- ^ Only covariant indices
+  | ContraVar (DimsE v i) -- ^ Only contravariant indices
+  | BothVar (DimsE v i) (DimsE v i) -- ^ Both variant and contravariant indices
   deriving (Eq, Show)
 
 -- | Get covariant indices
-coIx :: Variance v i -> Maybe (NonEmpty (DimE v i))
+coIx :: Variance v i -> Maybe (DimsE v i)
 coIx = \case
   CoVar ne -> Just ne
   BothVar ne _ -> Just ne
   _ -> Nothing
 
 -- | Get contravariant indices
-contraIx :: Variance v i -> Maybe (NonEmpty (DimE v i))
+contraIx :: Variance v i -> Maybe (DimsE v i)
 contraIx = \case
   BothVar _ ne -> Just ne
   ContraVar ne -> Just ne
@@ -52,14 +65,14 @@ contraIx = \case
 
 
 -- | A vector has a single contravariant index
-mkVarVector :: DimE v i -> Variance v i
-mkVarVector ixco = ContraVar (fromList [ixco])
+mkVarVector :: DimE v i -> Maybe (Variance v i)
+mkVarVector ixco = ContraVar <$> fromList [ixco]
 -- | A co-vector has a single covariant index
-mkVarCoVector :: DimE v i -> Variance v i
-mkVarCoVector ixcontra = CoVar (fromList [ixcontra])
+mkVarCoVector :: DimE v i -> Maybe (Variance v i)
+mkVarCoVector ixcontra = CoVar <$> fromList [ixcontra]
 -- | A matrix has one covariant and one contravariant index
-mkVarMatrix :: DimE v i -> DimE v i -> Variance v i
-mkVarMatrix ixco ixcontra = BothVar (fromList [ixco]) (fromList [ixcontra])
+mkVarMatrix :: DimE v i -> DimE v i -> Maybe (Variance v i)
+mkVarMatrix ixco ixcontra = BothVar <$> fromList [ixco] <*> fromList [ixcontra]
 
 instance Integral i => TShape (Variance v i) where
   tdim sh = case sh of
@@ -67,7 +80,7 @@ instance Integral i => TShape (Variance v i) where
     ContraVar ne -> ([], toDims ne)
     BothVar neco necontra -> (toDims neco, toDims necontra)
 
-toDims :: Integral i => NonEmpty (DimE v i) -> [Int]
+toDims :: Integral i => DimsE v i -> [Int]
 toDims ne = (fromIntegral . dimE) `map` toList ne
 
 -- | Contraction indices

@@ -20,27 +20,6 @@ import qualified Data.List.NonEmpty as NE
 
 
 
-data Op a = Reduce a a | Kron a a deriving (Eq, Show)
-
-inner uu vv = sum $ zipWith (*) uu vv
-
-inner' :: (Foldable f, Num a) => f (a, a) -> a
-inner' = foldr ins 0 where
-  ins (u, v) z = z + (u * v)
-
--- | Kronecker product
---
--- >>> kron [2,3,1,2] [2,3,4,5]
--- [[4,6,8,10],[6,9,12,15],[2,3,4,5],[4,6,8,10]]
--- kron = unfoldr go [] where
---   go ((uu, vv) : _)
---     | null uu = Nothing
-    
--- kron uvs = unfoldr go uvs where
---   go ((uu, vv):_) | null uu = Nothing
---                   | otherwise = Just ((head uu *) `map` vv, (tail uu, vv))
--- kron :: (Functor f, Functor g, Num a) => f a -> g a -> f (g a)
--- kron uu vv = fmap (\u -> (u *) <$> vv) uu
 
 
 -- | 
