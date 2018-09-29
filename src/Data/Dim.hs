@@ -13,22 +13,30 @@ Note : no rank or dimensionality information is known at compile time, that is, 
 -}
 module Data.Dim (
   -- * Variance annotation
-    Variance(..)
+    Variance(..), V(..)
     , coIx, contraIx
   -- ** Convenience constructors
   -- , mkVarVector, mkVarCoVector, mkVarMatrix    
   -- * Dimension metadata
+  , DimsE(..)
   , DimE(..), dimE, denseDimE, sparseDimE
   , Dd(..), Sd(..)
 
   ) where
 
+import Control.Applicative
+import Data.Maybe (isJust)
+import Control.Arrow ((***))
 import Data.Int (Int32(..), Int64(..))
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.IntMap as IM
 
 import Data.Shape.Types
 
+
+
+
+-- | A numbered set of dimension metadata
 newtype DimsE v i = DimsE {
   unDimsE :: IM.IntMap (DimE v i) } deriving (Eq, Show)
 
@@ -45,6 +53,7 @@ mapKeys f (DimsE im) = DimsE $ IM.mapKeys f im
 toList :: DimsE v i -> [DimE v i]
 toList (DimsE im) = snd `map` IM.toList im
 
+-- | The dimension metadata will be labeled in the list consumption order.
 fromList :: [DimE v i] -> Maybe (DimsE v i)
 fromList xs | null xs = Nothing
             | otherwise = Just . DimsE $ IM.fromList $ zip [0 ..] xs
@@ -55,12 +64,11 @@ Tensor product shorthand (Einstein notation) prescribes that only pairs of tenso
 -}
 
 
-
-
--- | Variance annotation
+-- | Variance annotation, containing the dimension metadata
 newtype Variance v i = Variance {
   unV :: V (DimsE v i) } deriving (Eq, Show)
 
+-- | Variance annotation
 data V a =
     CoVar a     -- ^ Only covariant indices 
   | ContraVar a -- ^ Only contravariant indices

@@ -17,15 +17,17 @@ data Expr e =
   | Lam Name (Expr e)
   | App (Expr e) (Expr e) deriving (Eq, Show)
 
+
+
 data Value a =
     Const a 
   | Clos Name (Expr a) (Scope a)  -- ^ Closure of an expression over a scope
-
-newtype Scope a = Scope (M.Map Name (Value a))
-
+  
 instance Show a => Show (Value a) where
   show (Const x) = show x
   show _ = "<<closure>>"
+
+newtype Scope a = Scope (M.Map Name (Value a))
 
 eval :: Scope a -> Expr a -> Maybe (Value a)
 eval env ex = case ex of
