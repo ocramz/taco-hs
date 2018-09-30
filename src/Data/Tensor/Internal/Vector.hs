@@ -32,34 +32,37 @@ compareIx i = comparing (ixUnsafe i)
 
 
 
-
-
-ptrV ::
-     Int   -- ^ Number of rows
-  -> V.Vector Int   -- ^ NNZ in each row
-  -> V.Vector Int  -- ^ Pointer vector
-ptrV = csPtrV (==)
-
-
 -- | Given a number of rows(resp. columns) `n` and a _sorted_ Vector of Integers in increasing order (containing the column (resp. row) indices of nonzero entries), return the cumulative vector of nonzero entries of length `n` (the "column (resp. row) pointer" of the CSR(CSC) format). NB: Fused count-and-accumulate
 -- E.g.:
--- > csPtrV (==) 4 (V.fromList [1,1,2,3])
--- [0,0,2,3,4]
-csPtrV :: (a -> Int -> Bool) -> Int -> V.Vector a -> V.Vector Int
-csPtrV eqf n xs = V.create createf where
-  createf :: ST s (VM.MVector s Int)
+-- > csPtrV 4 (V.fromList [1,1,2,3])
+-- [0,2,3,4]
+csPtrV :: Int32 -> V.Vector Int32 -> V.Vector Int32
+csPtrV n xs = V.create createf where
+  createf :: ST s (VM.MVector s Int32)
   createf = do
     let c = 0
-    vm <- VM.new n
+    vm <- VM.new (fromIntegral n)
     VM.write vm 0 0  -- write `0` at position 0
     let loop v ll i count | i == n = return ()
                           | otherwise = do
-                              let lp = V.length $ V.takeWhile (`eqf` i) ll
+                              let lp = V.length $ V.takeWhile (== i) ll
                                   count' = count + lp
-                              VM.write v i count'
+                              VM.write v (fromIntegral i) (fromIntegral count')
                               loop v (V.drop lp ll) (succ i) count'
     loop vm xs 1 c
     return vm
 
 
 
+-- asdf :: PrimMonad m =>
+--         Int32
+--      -> VM.MVector (PrimState m) Int32
+--      -> V.Vector Int32
+--      -> m ()
+-- asdf n vm xs = loop vm xs 1 0 where
+--   loop v ll i count | i == n = return ()
+--                     | otherwise = do
+--                         let lp = V.length $ V.takeWhile (== i) ll
+--                             count' = count + lp
+--                         VM.write v (fromIntegral i) (fromIntegral count')
+--                         loop v (V.drop lp ll) (succ i) count'
