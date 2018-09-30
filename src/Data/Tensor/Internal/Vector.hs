@@ -41,7 +41,7 @@ ptrV ::
 ptrV = csPtrV (==)
 
 
--- | Given a number of rows(resp. columns) `n` and a _sorted_ Vector of Integers in increasing order (containing the column (resp. row) indices of nonzero entries), return the cumulative vector of nonzero entries of length `n + 1` (the "column (resp. row) pointer" of the CSR(CSC) format). NB: Fused count-and-accumulate
+-- | Given a number of rows(resp. columns) `n` and a _sorted_ Vector of Integers in increasing order (containing the column (resp. row) indices of nonzero entries), return the cumulative vector of nonzero entries of length `n` (the "column (resp. row) pointer" of the CSR(CSC) format). NB: Fused count-and-accumulate
 -- E.g.:
 -- > csPtrV (==) 4 (V.fromList [1,1,2,3])
 -- [0,0,2,3,4]
