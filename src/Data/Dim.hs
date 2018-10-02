@@ -75,6 +75,9 @@ data V a =
   | BothVar a a -- ^ Both variant and contravariant indices
   deriving (Eq, Show, Functor)            
 
+transp = \case
+  CoVar x -> ContraVar x
+
 
 -- data Variance v i =
 --     CoVar (DimsE v i) -- ^ Only covariant indices 
