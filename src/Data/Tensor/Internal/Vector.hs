@@ -36,6 +36,14 @@ compareIx :: Ord i => Int -> Nz i a -> Nz i a -> Ordering
 compareIx i = comparing (ixUnsafe i)
 
 
+sortOnIx :: (PrimMonad m, Ord i) =>
+            V.Vector (Nz i a) -> Int -> m (V.Vector (Nz i a))
+sortOnIx v j = do
+  vm <- V.thaw v
+  VSM.sortBy (compareIx j) vm
+  V.freeze vm
+
+
 
   
 ptrV :: Integral i =>
