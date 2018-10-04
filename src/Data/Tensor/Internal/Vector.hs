@@ -1,3 +1,4 @@
+{-# language TypeFamilies #-}
 module Data.Tensor.Internal.Vector where
 
 import Data.Int (Int32, Int64)
@@ -16,6 +17,15 @@ import Data.Function (on)
 import Data.Ord
 import qualified Data.List.NonEmpty as NE
 -- import Prelude hiding ( (!!), length )
+
+-- | Row types that can be indexed via an integer parameter
+class Row r where
+  type RIxTy r :: *
+  ixRow :: r -> Int -> RIxTy r
+
+instance Row (Nz i a) where
+  type RIxTy (Nz i a) = i
+  ixRow r i = ixUnsafe i r
 
 
 -- | A nonzero element in coordinate form
