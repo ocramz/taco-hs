@@ -1,4 +1,4 @@
-{-# language TypeFamilies #-}
+{-# language TypeFamilies, FlexibleContexts #-}
 module Data.Tensor.Internal.Vector where
 
 import Data.Int (Int32, Int64)
@@ -21,11 +21,11 @@ import qualified Data.List.NonEmpty as NE
 -- | Row types that can be indexed via an integer parameter
 class Row r where
   type RIxTy r :: *
-  ixRow :: r -> Int -> RIxTy r
+  ixRow :: Int -> r -> RIxTy r
 
 instance Row (Nz i a) where
   type RIxTy (Nz i a) = i
-  ixRow r i = ixUnsafe i r
+  ixRow = ixUnsafe 
 
 
 -- | A nonzero element in coordinate form
@@ -42,12 +42,15 @@ ixUnsafe :: Int -> Nz i a -> i
 ixUnsafe i (Nz ne _) = ne NE.!! i  
 
 -- | Unsafe : it assumes the index is between 0 and (length - 1)
-compareIx :: Ord i => Int -> Nz i a -> Nz i a -> Ordering
-compareIx i = comparing (ixUnsafe i)
+-- compareIx :: Ord i => Int -> Nz i a -> Nz i a -> Ordering
+-- compareIx i = comparing (ixUnsafe i)
 
+compareIx :: (Row r, Ord (RIxTy r)) => Int -> r -> r -> Ordering
+compareIx i = comparing (ixRow i)
 
-sortOnIx :: (PrimMonad m, Ord i) =>
-            V.Vector (Nz i a) -> Int -> m (V.Vector (Nz i a))
+-- sortOnIx :: (PrimMonad m, Ord i) =>
+--             V.Vector (Nz i a) -> Int -> m (V.Vector (Nz i a))
+sortOnIx :: (PrimMonad m, Row r, Ord (RIxTy r)) => V.Vector r -> Int -> m (V.Vector r)
 sortOnIx v j = do
   vm <- V.thaw v
   VSM.sortBy (compareIx j) vm
