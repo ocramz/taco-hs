@@ -38,6 +38,7 @@ library
                      , containers
                      , exceptions
                      , mtl
+                     , parallel
                      , primitive
                      , transformers
                      , vector

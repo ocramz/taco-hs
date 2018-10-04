@@ -18,6 +18,8 @@ import Data.Ord
 import qualified Data.List.NonEmpty as NE
 -- import Prelude hiding ( (!!), length )
 
+import Control.Parallel.Strategies (using, rpar, Strategy(..), parTraversable)
+
 -- | Row types that can be indexed via an integer parameter
 class Row r where
   type RIxTy r :: *
@@ -42,26 +44,42 @@ ixUnsafe :: Int -> Nz i a -> i
 ixUnsafe i (Nz ne _) = ne NE.!! i  
 
 -- | Unsafe : it assumes the index is between 0 and (length - 1)
--- compareIx :: Ord i => Int -> Nz i a -> Nz i a -> Ordering
--- compareIx i = comparing (ixUnsafe i)
+compareIx :: Ord i => Int -> Nz i a -> Nz i a -> Ordering
+compareIx i = comparing (ixUnsafe i)
 
-compareIx :: (Row r, Ord (RIxTy r)) => Int -> r -> r -> Ordering
-compareIx i = comparing (ixRow i)
+-- compareIx :: (Row r, Ord (RIxTy r)) => Int -> r -> r -> Ordering
+-- compareIx i = comparing (ixRow i)
 
--- sortOnIx :: (PrimMonad m, Ord i) =>
---             V.Vector (Nz i a) -> Int -> m (V.Vector (Nz i a))
-sortOnIx :: (PrimMonad m, Row r, Ord (RIxTy r)) => V.Vector r -> Int -> m (V.Vector r)
+-- | A @Vector (Nz i a)@ contains the coordinate representation of the nonzero entries in a tensor.
+--
+-- The compressed-sparse-fiber (CSF) pointer vectors are computed by sorting this representation over one of its indices and counting repeated indices (with @ptrV@).
+--
+-- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
+--
+-- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
+sortAndCountAllIxs :: (PrimMonad f, Integral i, Traversable t) =>
+                V.Vector (Nz i a)
+             -> t (Int, i)  -- ^ (Index, dimensionality)
+             -> f (t (V.Vector Int32))
+sortAndCountAllIxs v ixs = do
+  vs <- traverse sortf ixs
+  pure (vs `using` parTraversable rpar)
+    where
+      sortf (i, n) = do
+        v' <- sortOnIx v i
+        pure $ ptrV i n v'
+
+-- sortOnIx :: (PrimMonad m, Row r, Ord (RIxTy r)) => V.Vector r -> Int -> m (V.Vector r)
+sortOnIx :: (PrimMonad m, Ord i) =>
+            V.Vector (Nz i a) -> Int -> m (V.Vector (Nz i a))
 sortOnIx v j = do
   vm <- V.thaw v
   VSM.sortBy (compareIx j) vm
   V.freeze vm
 
-
-
-  
 ptrV :: Integral i =>
-     Int   -- ^ Column index
-  -> i     -- ^ 
+     Int   -- ^ Index 
+  -> i     -- ^ Dimensionality 
   -> V.Vector (Nz i a)
   -> V.Vector Int32
 ptrV j = csPtrV (ixUnsafe j)
