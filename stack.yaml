@@ -1,5 +1,6 @@
 # resolver: lts-9.21
-resolver: lts-10.7
+# resolver: lts-10.7
+resolver: lts-12.11
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.

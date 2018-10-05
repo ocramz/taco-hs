@@ -75,8 +75,8 @@ data V a =
   | BothVar a a -- ^ Both variant and contravariant indices
   deriving (Eq, Show, Functor)            
 
-transp = \case
-  CoVar x -> ContraVar x
+-- transp = \case
+--   CoVar x -> ContraVar x
 
 
 -- data Variance v i =
@@ -87,6 +87,7 @@ transp = \case
 
 -- | Get covariant indices
 -- coIx :: Variance v i -> Maybe (DimsE v i)
+coIx :: V a -> Maybe a
 coIx = \case
   CoVar ne -> Just ne
   BothVar ne _ -> Just ne
@@ -94,6 +95,7 @@ coIx = \case
 
 -- | Get contravariant indices
 -- contraIx :: Variance v i -> Maybe (DimsE v i)
+contraIx :: V a -> Maybe a
 contraIx = \case
   BothVar _ ne -> Just ne
   ContraVar ne -> Just ne
