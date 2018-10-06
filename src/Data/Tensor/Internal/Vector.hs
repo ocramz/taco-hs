@@ -70,7 +70,7 @@ compareIx i = comparing (ixUnsafe i)
 -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
 --
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
-compressCOO :: (Foldable t, PrimMonad m, Row r) =>
+compressCOO :: (PrimMonad m, Foldable t, Row r) =>
                t (Int, Ix, Bool)
             -> V.Vector r
             -> m (V.Vector (REl r), [DimE V.Vector Ix])
@@ -95,7 +95,12 @@ data St a = St {
   } deriving (Eq, Show)
 
 
--- | Example usage
+-- | Example usage : sparse vector
+sv :: (PrimMonad m, Row r) =>
+      Ix -> V.Vector r -> m (V.Vector (REl r), [DimE V.Vector Ix])
+sv m = compressCOO [(0, m, False)]
+
+-- | Example usage : CSR sparse matrix
 csr :: (PrimMonad m, Row r) =>
        Ix
     -> Ix
