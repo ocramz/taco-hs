@@ -14,12 +14,13 @@ import qualified Data.Vector.Mutable as VM
 import Control.Monad.Primitive
 import Control.Monad.ST
 
+
 -- import Data.Function (on)
 import Data.Ord
 import qualified Data.List.NonEmpty as NE
 -- import Prelude hiding ( (!!), length )
 
-import Control.Parallel.Strategies (using, rpar, parTraversable)
+-- import Control.Parallel.Strategies (using, rpar, parTraversable)
 
 import Data.Dim
 
@@ -69,46 +70,36 @@ compareIx i = comparing (ixUnsafe i)
 -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
 --
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
+compressCOO :: (Foldable t, PrimMonad m, Row r) =>
+               t (Int, Ix, Bool)
+            -> V.Vector r
+            -> m (V.Vector (REl r), [Either (V.Vector Ix) Ix])
+compressCOO ixs v0 = do 
+  (St vFinal se) <- foldlM go (St v0 []) ixs
+  pure (rowElem <$> vFinal, se)
+  where
+    go (St v se) (i, n, dense) = do
+      v' <- sortOnIx v i
+      if not dense
+        then
+        do 
+          let vp = ptrV i n v'
+              se' = Left vp : se
+          pure (St v' se')
+        else pure (St v' (Right n : se))
+
+data St a = St {
+    stv :: V.Vector a
+  , ste :: [Either (V.Vector Ix) Ix]
+  } deriving (Eq, Show)
 
 
--- compressCOO :: (PrimMonad m, Traversable t, Row coo) =>
---                t (Int, Ix, Bool) -- ^ (Index, dimensionality, "Dense" dim.flag)
---             -> V.Vector coo
---             -> m (t (DimE V.Vector Ix))
-
-
--- levelHelper v (i, n, dense)
---   | not dense = do
---       v' <- sortOnIx v i
---       let vp = ptrV i n v'
---       pure $ Left (v', vp)
---   | otherwise = pure $ Right n
-
-levelHelper v (i, n, dense) = do
-  v' <- sortOnIx v i
-  if not dense
-    then
-    do 
-      let vp = ptrV i n v'
-      pure $ Left (v', vp)
-    else
-      pure $ Right (v', n)
-
-compressCOO ixs v = do
-  -- let xs = rowElem <$> v  -- NB : the index-wise sorts are dependent on each other
-  vs <- traverse sortf ixs
-  pure (vs `using` parTraversable rpar)
-    where
-      sortf (i, n, dense)
-        | not dense = do
-            v' <- sortOnIx v i
-            let vp = ptrV i n v'
-                vi = ixRow i <$> v
-            pure $ sparseDimE (Just vp) vi n
-        | otherwise = pure $ denseDimE n
-
-csr :: (PrimMonad m, Row coo) =>
-       Ix -> Ix -> V.Vector coo -> m [DimE V.Vector Ix]
+-- | Example usage
+csr :: (PrimMonad m, Row r) =>
+       Ix
+    -> Ix
+    -> V.Vector r
+    -> m (V.Vector (REl r), [Either (V.Vector Ix) Ix])
 csr m n = compressCOO [(0, m, True), (1, n, False)]
 
 
