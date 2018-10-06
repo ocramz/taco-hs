@@ -23,36 +23,39 @@ import Control.Parallel.Strategies (using, rpar, parTraversable)
 import Data.Dim
 
 
-
+-- | I think it's a good idea to fix the type of the address space. For now it's set here as 'Int32'.
+type Ix = Int32
 
 -- | Row types that can be indexed via an integer parameter
 class Row r where
-  type RIxTy r :: *
-  ixRow :: Int -> r -> RIxTy r
+  type REl r :: *
+  ixRow :: Int -> r -> Ix
+  mkRow :: [Ix] -> REl r -> r
 
-instance Row (Nz i a) where
-  type RIxTy (Nz i a) = i
-  ixRow = ixUnsafe 
+instance Row (Nz a) where
+  type REl (Nz a) = a
+  ixRow = ixUnsafe
+  mkRow = fromList
+
+compareIxRow :: Row r => Int -> r -> r -> Ordering
+compareIxRow j = comparing (ixRow j)  
 
 
 -- | A nonzero element in coordinate form
-data Nz i a = Nz {
-    nzIxs :: !(NE.NonEmpty i)
+data Nz a = Nz {
+    nzIxs :: !(NE.NonEmpty Ix)
   , nzEl :: a } deriving (Eq, Show)
 
-fromList :: i -> [i] -> a -> Nz i a
-fromList i iis = Nz (i NE.:| iis)
-
-fromListU :: [i] -> a -> Nz i a
-fromListU = Nz . NE.fromList
+fromList :: [Ix] -> a -> Nz a
+fromList = Nz . NE.fromList
 
 
 -- | Unsafe : it assumes the index is between 0 and (length - 1)
-ixUnsafe :: Int -> Nz i a -> i
+ixUnsafe :: Int -> Nz a -> Ix
 ixUnsafe i (Nz ne _) = ne NE.!! i  
 
 -- | Unsafe : it assumes the index is between 0 and (length - 1)
-compareIx :: Ord i => Int -> Nz i a -> Nz i a -> Ordering
+compareIx :: Int -> Nz a -> Nz a -> Ordering
 compareIx i = comparing (ixUnsafe i)
 
 
@@ -63,10 +66,10 @@ compareIx i = comparing (ixUnsafe i)
 -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
 --
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
-compressCOO :: (PrimMonad m, Traversable t) =>
-                V.Vector (Nz Int32 a)
-             -> t (Int, Int32, Bool)  -- ^ (Index, dimensionality, "Dense" dim.flag)
-             -> m (t (DimE V.Vector Int32))
+compressCOO :: (PrimMonad m, Row r, Traversable t) =>
+               V.Vector r
+            -> t (Int, Ix, Bool) -- ^ (Index, dimensionality, "Dense" dim.flag)
+            -> m (t (DimE V.Vector Ix))
 compressCOO v ixs = do
   vs <- traverse sortf ixs
   pure (vs `using` parTraversable rpar)
@@ -75,22 +78,23 @@ compressCOO v ixs = do
         | not denseFlag = do
             v' <- sortOnIx v i
             let vp = ptrV i n v'
-                vi = ixUnsafe i <$> v
+                vi = ixRow i <$> v
             pure $ sparseDimE (Just vp) vi n
         | otherwise = pure $ denseDimE n
 
-sortOnIx :: (PrimMonad m, Ord i) =>
-            V.Vector (Nz i a) -> Int -> m (V.Vector (Nz i a))
+sortOnIx :: (PrimMonad m, Row r) =>
+            V.Vector r -> Int -> m (V.Vector r)
 sortOnIx v j = do
   vm <- V.thaw v
-  VSM.sortBy (compareIx j) vm
+  VSM.sortBy (compareIxRow j) vm
   V.freeze vm
 
-ptrV :: Int   -- ^ Index 
-  -> Int32     -- ^ Dimensionality 
-  -> V.Vector (Nz Int32 a)
-  -> V.Vector Int32
-ptrV j = csPtrV (ixUnsafe j)
+ptrV :: Row r =>
+        Int   -- ^ Index 
+     -> Ix     -- ^ Dimensionality 
+     -> V.Vector r
+     -> V.Vector Ix
+ptrV j = csPtrV (ixRow j)
   
 
 -- | Given a number of rows(resp. columns) `n` and a _sorted_ Vector of Integers in increasing order (containing the column (resp. row) indices of nonzero entries), return the cumulative vector of nonzero entries of length `n` (the "column (resp. row) pointer" of the CSR(CSC) format). NB: Fused count-and-accumulate
@@ -98,9 +102,9 @@ ptrV j = csPtrV (ixUnsafe j)
 -- > csPtrV 4 (V.fromList [1,1,2,3])
 -- [0,2,3,4]
 -- csPtrV :: Int -> Int32 -> V.Vector (Row Int32) -> V.Vector Int32
-csPtrV :: (r -> Int32) -> Int32 -> V.Vector r -> V.Vector Int32
+csPtrV :: (r -> Ix) -> Ix -> V.Vector r -> V.Vector Ix
 csPtrV ixf n xs = V.create createf where
-  createf :: ST s (VM.MVector s Int32)
+  createf :: ST s (VM.MVector s Ix)
   createf = do
     let c = 0
     vm <- VM.new (fromIntegral n)
