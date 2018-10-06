@@ -85,7 +85,7 @@ compressCOO ixs v0 = do
         do 
           let vp = ptrV i n v'
               vi = ixRow i <$> v'
-              sdim = sparseDimE (Just vp) vi n
+              sdim = sparseDimE vp vi n
           pure (St v' (sdim : se))
         else pure (St v' (denseDimE n : se))
 

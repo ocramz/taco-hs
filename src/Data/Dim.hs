@@ -147,7 +147,7 @@ denseDimE :: i -> DimE v i
 denseDimE = DimE . Left . Dd 
 
 -- | Construct a sparse DimE
-sparseDimE :: Maybe (v i) -> v i -> i -> DimE v i
+sparseDimE :: v i -> v i -> i -> DimE v i
 sparseDimE sv ixv n = DimE (Right (Sd sv ixv n))
 
 
@@ -159,8 +159,8 @@ newtype Dd i = Dd {
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
 data Sd v i = Sd {
-      -- | Location in the sIdx array where each segment begins. Not all storage formats (e.g. COO for rank-2 tensors) need this information, hence it's wrapped in a Maybe.
-      sPtr :: Maybe (v i)
+      -- | Location in the sIdx array where each segment begins. 
+      sPtr :: v i
       -- | Index array (indices of nonzero entries)
     , sIdx :: v i
       -- | Dimensionality 
