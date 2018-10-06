@@ -43,6 +43,9 @@ data Nz i a = Nz {
 fromList :: i -> [i] -> a -> Nz i a
 fromList i iis = Nz (i NE.:| iis)
 
+fromListU :: [i] -> a -> Nz i a
+fromListU = Nz . NE.fromList
+
 
 -- | Unsafe : it assumes the index is between 0 and (length - 1)
 ixUnsafe :: Int -> Nz i a -> i
@@ -52,8 +55,6 @@ ixUnsafe i (Nz ne _) = ne NE.!! i
 compareIx :: Ord i => Int -> Nz i a -> Nz i a -> Ordering
 compareIx i = comparing (ixUnsafe i)
 
--- compareIx :: (Row r, Ord (RIxTy r)) => Int -> r -> r -> Ordering
--- compareIx i = comparing (ixRow i)
 
 -- | A @Vector (Nz i a)@ contains the coordinate representation of the nonzero entries in a tensor.
 --
@@ -62,11 +63,11 @@ compareIx i = comparing (ixUnsafe i)
 -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
 --
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
-csf :: (PrimMonad m, Traversable t) =>
+compressCOO :: (PrimMonad m, Traversable t) =>
                 V.Vector (Nz Int32 a)
              -> t (Int, Int32, Bool)  -- ^ (Index, dimensionality, "Dense" dim.flag)
              -> m (t (DimE V.Vector Int32))
-csf v ixs = do
+compressCOO v ixs = do
   vs <- traverse sortf ixs
   pure (vs `using` parTraversable rpar)
     where
@@ -78,7 +79,6 @@ csf v ixs = do
             pure $ sparseDimE (Just vp) vi n
         | otherwise = pure $ denseDimE n
 
--- sortOnIx :: (PrimMonad m, Row r, Ord (RIxTy r)) => V.Vector r -> Int -> m (V.Vector r)
 sortOnIx :: (PrimMonad m, Ord i) =>
             V.Vector (Nz i a) -> Int -> m (V.Vector (Nz i a))
 sortOnIx v j = do
@@ -113,29 +113,6 @@ csPtrV ixf n xs = V.create createf where
                               loop v (V.drop lp ll) (succ i) count'
     loop vm xs 1 c
     return vm
-
-
-
--- -- | Given a number of rows(resp. columns) `n` and a _sorted_ Vector of Integers in increasing order (containing the column (resp. row) indices of nonzero entries), return the cumulative vector of nonzero entries of length `n` (the "column (resp. row) pointer" of the CSR(CSC) format). NB: Fused count-and-accumulate
--- -- E.g.:
--- -- > csPtrV 4 (V.fromList [1,1,2,3])
--- -- [0,2,3,4]
--- csPtrV :: Int32 -> V.Vector Int32 -> V.Vector Int32
--- csPtrV n xs = V.create createf where
---   createf :: ST s (VM.MVector s Int32)
---   createf = do
---     let c = 0
---     vm <- VM.new (fromIntegral n)
---     VM.write vm 0 0  -- write `0` at position 0
---     let loop v ll i count | i == n = return ()
---                           | otherwise = do
---                               let lp = V.length $ V.takeWhile (== i) ll
---                                   count' = count + lp
---                               VM.write v (fromIntegral i) (fromIntegral count')
---                               loop v (V.drop lp ll) (succ i) count'
---     loop vm xs 1 c
---     return vm
-
 
 
 
