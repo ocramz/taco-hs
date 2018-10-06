@@ -73,7 +73,7 @@ compareIx i = comparing (ixUnsafe i)
 compressCOO :: (Foldable t, PrimMonad m, Row r) =>
                t (Int, Ix, Bool)
             -> V.Vector r
-            -> m (V.Vector (REl r), [Either (V.Vector Ix) Ix])
+            -> m (V.Vector (REl r), [DimE V.Vector Ix])
 compressCOO ixs v0 = do 
   (St vFinal se) <- foldlM go (St v0 []) ixs
   pure (rowElem <$> vFinal, se)
@@ -84,13 +84,14 @@ compressCOO ixs v0 = do
         then
         do 
           let vp = ptrV i n v'
-              se' = Left vp : se
-          pure (St v' se')
-        else pure (St v' (Right n : se))
+              vi = ixRow i <$> v'
+              sdim = sparseDimE (Just vp) vi n
+          pure (St v' (sdim : se))
+        else pure (St v' (denseDimE n : se))
 
 data St a = St {
     stv :: V.Vector a
-  , ste :: [Either (V.Vector Ix) Ix]
+  , ste :: [DimE V.Vector Ix]
   } deriving (Eq, Show)
 
 
@@ -99,7 +100,7 @@ csr :: (PrimMonad m, Row r) =>
        Ix
     -> Ix
     -> V.Vector r
-    -> m (V.Vector (REl r), [Either (V.Vector Ix) Ix])
+    -> m (V.Vector (REl r), [DimE V.Vector Ix])
 csr m n = compressCOO [(0, m, True), (1, n, False)]
 
 
