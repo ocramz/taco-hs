@@ -31,11 +31,13 @@ class Row r where
   type REl r :: *
   ixRow :: Int -> r -> Ix
   mkRow :: [Ix] -> REl r -> r
+  rowElem :: r -> REl r
 
 instance Row (Nz a) where
   type REl (Nz a) = a
   ixRow = ixUnsafe
   mkRow = fromList
+  rowElem = nzEl
 
 compareIxRow :: Row r => Int -> r -> r -> Ordering
 compareIxRow j = comparing (ixRow j)  
@@ -66,21 +68,31 @@ compareIx i = comparing (ixUnsafe i)
 -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
 --
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
-compressCOO :: (PrimMonad m, Row r, Traversable t) =>
-               V.Vector r
-            -> t (Int, Ix, Bool) -- ^ (Index, dimensionality, "Dense" dim.flag)
-            -> m (t (DimE V.Vector Ix))
-compressCOO v ixs = do
+
+
+-- compressCOO :: (PrimMonad m, Traversable t, Row coo) =>
+--                t (Int, Ix, Bool) -- ^ (Index, dimensionality, "Dense" dim.flag)
+--             -> V.Vector coo
+--             -> m (t (DimE V.Vector Ix))
+
+
+compressCOO ixs v = do
+  -- let xs = rowElem <$> v  -- NB : the index-wise sorts are dependent on each other
   vs <- traverse sortf ixs
   pure (vs `using` parTraversable rpar)
     where
-      sortf (i, n, denseFlag)
-        | not denseFlag = do
+      sortf (i, n, dense)
+        | not dense = do
             v' <- sortOnIx v i
             let vp = ptrV i n v'
                 vi = ixRow i <$> v
             pure $ sparseDimE (Just vp) vi n
         | otherwise = pure $ denseDimE n
+
+csr :: (PrimMonad m, Row coo) =>
+       Ix -> Ix -> V.Vector coo -> m [DimE V.Vector Ix]
+csr m n = compressCOO [(0, m, True), (1, n, False)]
+
 
 sortOnIx :: (PrimMonad m, Row r) =>
             V.Vector r -> Int -> m (V.Vector r)
