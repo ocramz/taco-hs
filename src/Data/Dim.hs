@@ -18,13 +18,13 @@ module Data.Dim (
   -- ** Convenience constructors
   -- , mkVarVector, mkVarCoVector, mkVarMatrix    
   -- * Dimension metadata
-  , DimsE(..)
+  , DimsE(..), empty, insert
   , DimE(..), dimE, denseDimE, sparseDimE
   , Dd(..), Sd(..)
 
   ) where
 
-import Control.Applicative
+import Control.Applicative hiding (empty)
 import Data.Maybe (isJust)
 import Control.Arrow ((***))
 import Data.Int (Int32(..), Int64(..))
@@ -40,6 +40,12 @@ import Data.Shape.Types
 -- | A numbered set of dimension metadata
 newtype DimsE v i = DimsE {
   unDimsE :: IM.IntMap (DimE v i) } deriving (Eq, Show)
+
+empty :: DimsE v i
+empty = DimsE IM.empty
+
+insert :: IM.Key -> DimE v i -> DimsE v i -> DimsE v i
+insert k v (DimsE im) = DimsE $ IM.insert k v im
 
 lookupDim :: DimsE v i -> IM.Key -> Maybe (DimE v i)
 lookupDim im i = IM.lookup i (unDimsE im)

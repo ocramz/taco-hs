@@ -22,7 +22,7 @@ import qualified Data.List.NonEmpty as NE
 
 -- import Control.Parallel.Strategies (using, rpar, parTraversable)
 
-import Data.Dim
+import qualified Data.Dim as D
 
 
 -- | I think it's a good idea to fix the type of the address space. For now it's set here as 'Int32'.
@@ -73,9 +73,9 @@ compareIx i = comparing (ixUnsafe i)
 compressCOO :: (PrimMonad m, Foldable t, Row r) =>
                t (Int, Ix, Bool)
             -> V.Vector r
-            -> m (V.Vector (REl r), [DimE V.Vector Ix])
+            -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
 compressCOO ixs v0 = do 
-  (St vFinal se) <- foldlM go (St v0 []) ixs
+  (St vFinal se) <- foldlM go (St v0 D.empty) ixs
   pure (rowElem <$> vFinal, se)
   where
     go (St v se) (i, n, dense) = do
@@ -85,19 +85,19 @@ compressCOO ixs v0 = do
         do 
           let vp = ptrV i n v'
               vi = ixRow i <$> v'
-              sdim = sparseDimE vp vi n
-          pure (St v' (sdim : se))
-        else pure (St v' (denseDimE n : se))
+              sdim = D.sparseDimE vp vi n
+          pure (St v' (D.insert i sdim se))
+        else pure (St v' (D.insert i (D.denseDimE n) se))
 
 data St a = St {
     stv :: V.Vector a
-  , ste :: [DimE V.Vector Ix]
+  , ste :: D.DimsE V.Vector Ix
   } deriving (Eq, Show)
 
 
 -- | Example usage : sparse vector
 sv :: (PrimMonad m, Row r) =>
-      Ix -> V.Vector r -> m (V.Vector (REl r), [DimE V.Vector Ix])
+      Ix -> V.Vector r -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
 sv m = compressCOO [(0, m, False)]
 
 -- | Example usage : CSR sparse matrix
@@ -105,7 +105,7 @@ csr :: (PrimMonad m, Row r) =>
        Ix
     -> Ix
     -> V.Vector r
-    -> m (V.Vector (REl r), [DimE V.Vector Ix])
+    -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
 csr m n = compressCOO [(0, m, True), (1, n, False)]
 
 
