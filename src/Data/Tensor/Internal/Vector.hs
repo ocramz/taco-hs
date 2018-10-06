@@ -57,9 +57,9 @@ compareIx i = comparing (ixUnsafe i)
 -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
 --
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
-sortAndCountAllIxs :: (PrimMonad f, Integral i, Traversable t) =>
-                V.Vector (Nz i a)
-             -> t (Int, i)  -- ^ (Index, dimensionality)
+sortAndCountAllIxs :: (PrimMonad f, Traversable t) =>
+                V.Vector (Nz Int32 a)
+             -> t (Int, Int32)  -- ^ (Index, dimensionality)
              -> f (t (V.Vector Int32))
 sortAndCountAllIxs v ixs = do
   vs <- traverse sortf ixs
@@ -77,10 +77,9 @@ sortOnIx v j = do
   VSM.sortBy (compareIx j) vm
   V.freeze vm
 
-ptrV :: Integral i =>
-     Int   -- ^ Index 
-  -> i     -- ^ Dimensionality 
-  -> V.Vector (Nz i a)
+ptrV :: Int   -- ^ Index 
+  -> Int32     -- ^ Dimensionality 
+  -> V.Vector (Nz Int32 a)
   -> V.Vector Int32
 ptrV j = csPtrV (ixUnsafe j)
   
@@ -90,7 +89,7 @@ ptrV j = csPtrV (ixUnsafe j)
 -- > csPtrV 4 (V.fromList [1,1,2,3])
 -- [0,2,3,4]
 -- csPtrV :: Int -> Int32 -> V.Vector (Row Int32) -> V.Vector Int32
-csPtrV :: Integral i => (r -> i) -> i -> V.Vector r -> V.Vector Int32
+csPtrV :: (r -> Int32) -> Int32 -> V.Vector r -> V.Vector Int32
 csPtrV ixf n xs = V.create createf where
   createf :: ST s (VM.MVector s Int32)
   createf = do
