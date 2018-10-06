@@ -64,17 +64,19 @@ compareIx i = comparing (ixUnsafe i)
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
 csf :: (PrimMonad m, Traversable t) =>
                 V.Vector (Nz Int32 a)
-             -> t (Int, Int32)  -- ^ (Index, dimensionality)
-             -> m (t (Sd V.Vector Int32))
+             -> t (Int, Int32, Bool)  -- ^ (Index, dimensionality, "Dense" dim.flag)
+             -> m (t (DimE V.Vector Int32))
 csf v ixs = do
   vs <- traverse sortf ixs
   pure (vs `using` parTraversable rpar)
     where
-      sortf (i, n) = do
-        v' <- sortOnIx v i
-        let vp = ptrV i n v'
-            vi = ixUnsafe i <$> v
-        pure $ Sd (Just vp) vi n
+      sortf (i, n, denseFlag)
+        | not denseFlag = do
+            v' <- sortOnIx v i
+            let vp = ptrV i n v'
+                vi = ixUnsafe i <$> v
+            pure $ sparseDimE (Just vp) vi n
+        | otherwise = pure $ denseDimE n
 
 -- sortOnIx :: (PrimMonad m, Row r, Ord (RIxTy r)) => V.Vector r -> Int -> m (V.Vector r)
 sortOnIx :: (PrimMonad m, Ord i) =>
