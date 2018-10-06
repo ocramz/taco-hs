@@ -1,24 +1,29 @@
 {-# language TypeFamilies, FlexibleContexts #-}
 module Data.Tensor.Internal.Vector where
 
-import Data.Int (Int32, Int64)
-import Data.Foldable (foldl')
-import Data.List (group, groupBy)
-import qualified Data.Vector.Algorithms.Radix as VSR (sort, sortBy, Radix(..))
-import qualified Data.Vector.Algorithms.Merge as VSM (sort, sortBy, Comparison)
+import Data.Int (Int32)
+-- import Data.Foldable (foldl')
+-- import Data.List (group, groupBy)
+-- import qualified Data.Vector.Algorithms.Radix as VSR (sort, sortBy, Radix(..))
+import qualified Data.Vector.Algorithms.Merge as VSM (sortBy)
 import qualified Data.Vector as V
-import qualified Data.Vector.Generic.Mutable as VGM
+-- import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Mutable as VM
 -- import qualified Data.IntMap as IM
 import Control.Monad.Primitive
 import Control.Monad.ST
 
-import Data.Function (on)
+-- import Data.Function (on)
 import Data.Ord
 import qualified Data.List.NonEmpty as NE
 -- import Prelude hiding ( (!!), length )
 
-import Control.Parallel.Strategies (using, rpar, Strategy(..), parTraversable)
+import Control.Parallel.Strategies (using, rpar, parTraversable)
+
+import Data.Dim
+
+
+
 
 -- | Row types that can be indexed via an integer parameter
 class Row r where
@@ -57,17 +62,19 @@ compareIx i = comparing (ixUnsafe i)
 -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
 --
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
-sortAndCountAllIxs :: (PrimMonad f, Traversable t) =>
+csf :: (PrimMonad m, Traversable t) =>
                 V.Vector (Nz Int32 a)
              -> t (Int, Int32)  -- ^ (Index, dimensionality)
-             -> f (t (V.Vector Int32))
-sortAndCountAllIxs v ixs = do
+             -> m (t (Sd V.Vector Int32))
+csf v ixs = do
   vs <- traverse sortf ixs
   pure (vs `using` parTraversable rpar)
     where
       sortf (i, n) = do
         v' <- sortOnIx v i
-        pure $ ptrV i n v'
+        let vp = ptrV i n v'
+            vi = ixUnsafe i <$> v
+        pure $ Sd (Just vp) vi n
 
 -- sortOnIx :: (PrimMonad m, Row r, Ord (RIxTy r)) => V.Vector r -> Int -> m (V.Vector r)
 sortOnIx :: (PrimMonad m, Ord i) =>

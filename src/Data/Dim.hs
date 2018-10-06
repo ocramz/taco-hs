@@ -36,6 +36,7 @@ import Data.Shape.Types
 
 
 
+
 -- | A numbered set of dimension metadata
 newtype DimsE v i = DimsE {
   unDimsE :: IM.IntMap (DimE v i) } deriving (Eq, Show)
