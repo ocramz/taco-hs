@@ -3,6 +3,7 @@ module Data.Tensor.Internal.Vector where
 
 import Data.Int (Int32)
 -- import Data.Foldable (foldl')
+import Data.Foldable (foldlM)
 -- import Data.List (group, groupBy)
 -- import qualified Data.Vector.Algorithms.Radix as VSR (sort, sortBy, Radix(..))
 import qualified Data.Vector.Algorithms.Merge as VSM (sortBy)
@@ -75,6 +76,23 @@ compareIx i = comparing (ixUnsafe i)
 --             -> V.Vector coo
 --             -> m (t (DimE V.Vector Ix))
 
+
+-- levelHelper v (i, n, dense)
+--   | not dense = do
+--       v' <- sortOnIx v i
+--       let vp = ptrV i n v'
+--       pure $ Left (v', vp)
+--   | otherwise = pure $ Right n
+
+levelHelper v (i, n, dense) = do
+  v' <- sortOnIx v i
+  if not dense
+    then
+    do 
+      let vp = ptrV i n v'
+      pure $ Left (v', vp)
+    else
+      pure $ Right (v', n)
 
 compressCOO ixs v = do
   -- let xs = rowElem <$> v  -- NB : the index-wise sorts are dependent on each other
