@@ -1,4 +1,4 @@
-{-# language LambdaCase, DeriveFunctor #-}
+{-# language LambdaCase, DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 {-|
 Module      : Data.Dim
 Description : Dimension data
@@ -13,12 +13,12 @@ Note : no rank or dimensionality information is known at compile time, that is, 
 -}
 module Data.Dim (
   -- * Variance annotation
-    Variance(..), V(..), insertV
-    , coIx, contraIx
-  -- ** Convenience constructors
-  -- , mkVarVector, mkVarCoVector, mkVarMatrix    
-  -- * Dimension metadata
-  , DimsE(..), empty, insert, size
+    Variance(..), V(..), co, contra
+  , coIx, contraIx
+  -- -- ** Convenience constructors
+  -- -- , mkVarVector, mkVarCoVector, mkVarMatrix    
+  -- -- * Dimension metadata
+  , empty, insert, rekey
   , DimE(..), dimE, denseDimE, sparseDimE
   , Dd(..), Sd(..)
 
@@ -35,62 +35,111 @@ import qualified Data.Map.Strict as M
 import Data.Shape.Types
 
 
-
-
-
--- | A numbered set of dimension metadata
-newtype DimsE v i = DimsE {
-  unDimsE :: IM.IntMap (DimE v i) } deriving (Eq, Show)
-
-size :: DimsE v i -> Int
-size (DimsE mm) = IM.size mm
-
-empty :: DimsE v i
-empty = DimsE IM.empty
-
-insert :: IM.Key -> DimE v i -> DimsE v i -> DimsE v i
-insert k v (DimsE im) = DimsE $ IM.insert k v im
-
-lookupDim :: DimsE v i -> IM.Key -> Maybe (DimE v i)
-lookupDim im i = IM.lookup i (unDimsE im)
-
-mapKeys :: (IM.Key -> IM.Key) -> DimsE v i -> DimsE v i
-mapKeys f (DimsE im) = DimsE $ IM.mapKeys f im
-
--- intersectionWithKey :: (IM.Key -> DimE v i1 -> DimE v i2 -> DimE v i3)
---                     -> DimsE v i1 -> DimsE v i2 -> DimsE v i3
--- intersectionWithKey f (DimsE m1) (DimsE m2) = DimsE $ IM.intersectionWithKey f m1 m2
-
-toList :: DimsE v i -> [DimE v i]
-toList (DimsE im) = snd `map` IM.toList im
-
--- | The dimension metadata will be labeled in the list consumption order.
-fromList :: [DimE v i] -> Maybe (DimsE v i)
-fromList xs | null xs = Nothing
-            | otherwise = Just . DimsE $ IM.fromList $ zip [0 ..] xs
-
-
 {- 
-Tensor product shorthand (Einstein notation) prescribes that only pairs of tensors with paired indices can be multiplied. In particular, in the index pair one index should be variant and the other contravariant.
+Tensor product shorthand (Einstein notation) prescribes that only pairs of tensors with common indices can be multiplied. In particular, in the index pair one index should be variant and the other contravariant.
 -}
 
 
 -- | Variance annotation
-data V = Co | Contra deriving (Eq, Ord, Show)
+data V a = Co a  -- ^ Covariant
+  | Contra a  -- ^ Contravariant
+  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
 
-newtype Variance v i = Variance {
-  unV :: M.Map V (DimsE v i) } deriving (Eq, Show)
+co, contra :: a -> V a 
+co = Co
+contra = Contra
 
-insertV :: V -> DimsE v i -> Variance v i -> Variance v i
-insertV vann di (Variance m) = Variance $ M.insert vann di m
+unV :: V a -> a
+unV (Co x) = x
+unV (Contra x) = x
+
+newtype Var a =
+  Var (IM.IntMap (V a)) deriving (Eq, Show, Functor, Foldable, Traversable)
+
+emptyVar :: Var a
+emptyVar = Var IM.empty
+
+insertVar :: IM.Key -> V a -> Var a -> Var a
+insertVar i di (Var m) = Var $ IM.insert i di m
+
+mapKeysV :: (IM.Key -> IM.Key) -> Var a -> Var a
+mapKeysV fk (Var im) = Var $ IM.mapKeys fk im
+
+filterV :: (V a -> Bool) -> Var a -> Var a
+filterV ff (Var im) = Var $ IM.filter ff im
+
+filterMaybeV :: (V a -> Bool) -> Var a -> Maybe (Var a)
+filterMaybeV q var
+  | null va = Nothing
+  | otherwise = Just va
+  where
+    va = filterV q var
 
 -- | Get covariant indices
-coIx :: Variance v i -> Maybe (DimsE v i)
-coIx (Variance mm) = M.lookup Co mm
+coIx :: Var a -> Maybe (Var a)
+coIx = filterMaybeV isCo
 
 -- | Get contravariant indices
-contraIx :: Variance v i -> Maybe (DimsE v i)
-contraIx (Variance mm) = M.lookup Contra mm
+contraIx :: Var a -> Maybe (Var a)
+contraIx = filterMaybeV (not . isCo)
+
+isCo :: V a -> Bool
+isCo v = case v of Co _ -> True
+                   _    -> False
+
+
+instance Integral i => TShape (Variance v i) where
+  tdim = getTDim . unVar
+
+newtype Variance v i = Variance { unVar :: Var (DimE v i) } deriving (Eq, Show)
+
+empty :: Variance v i
+empty = Variance emptyVar
+
+rekey :: [IM.Key] -> Variance v i -> Variance v i
+rekey ks (Variance v) = Variance $ rekeyVar ks v
+
+insert :: IM.Key -> V (DimE v i) -> Variance v i -> Variance v i
+insert k v (Variance va) = Variance $ insertVar k v va
+
+getTDim :: Integral i => Var (DimE v i) -> ([Int], [Int])
+getTDim va = (gettd coIx, gettd contraIx) where
+  gettd f = maybe [] toDims (f va)
+
+toDims :: Integral i => Var (DimE v i) -> [Int]
+toDims ne = (fromIntegral . dimE . unV) `map` toList ne
+
+toList :: Var a -> [V a]
+toList (Var im) = snd `map` IM.toList im
+
+fromList :: [(IM.Key, V a)] -> Var a
+fromList = Var . IM.fromList
+
+-- | Discards the keys and applies a new set of keys supplied as the list argument
+rekeyVar :: [IM.Key] -> Var a -> Var a
+rekeyVar ixm (Var im) = fromList $ zip ixm vm
+  where
+    (_, vm) = unzip $ IM.toList im
+
+
+-- lookupDim :: DimsE v i -> IM.Key -> Maybe (DimE v i)
+-- lookupDim im i = IM.lookup i (unDimsE im)
+
+intersectionWithKey
+  :: (IM.Key -> V a1 -> V a2 -> V a3) -> Var a1 -> Var a2 -> Var a3
+intersectionWithKey f (Var m1) (Var m2) = Var $ IM.intersectionWithKey f m1 m2
+
+
+
+-- -- | The dimension metadata will be labeled in the list consumption order.
+-- fromList :: [DimE v i] -> Maybe (DimsE v i)
+-- fromList xs | null xs = Nothing
+--             | otherwise = Just . DimsE $ IM.fromList $ zip [0 ..] xs
+
+
+
+
+
 
 
 -- -- | A vector has a single contravariant index
@@ -106,15 +155,7 @@ contraIx (Variance mm) = M.lookup Contra mm
 
 
 
-instance Integral i => TShape (Variance v i) where
-  tdim = getTDim
 
-getTDim :: Integral i => Variance v i -> ([Int], [Int])
-getTDim va = (gettd coIx, gettd contraIx) where
-  gettd f = maybe [] toDims (f va)
-
-toDims :: Integral i => DimsE v i -> [Int]
-toDims ne = (fromIntegral . dimE) `map` toList ne
 
 -- | Contraction indices
 newtype CIx = CIx (NonEmpty Int) deriving (Eq, Show)

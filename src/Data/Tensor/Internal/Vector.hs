@@ -76,24 +76,28 @@ compareIx i = comparing (ixUnsafe i)
 --
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
 compressCOO :: (PrimMonad m, Foldable t, COO coo) =>
-               t (Int, Ix, Bool) -- ^ (Index, Dimensionality, Dense dimension flag)
+               t (Int, Ix, Bool, Bool) -- ^ (Index, Dimensionality, Dense dimension flag, Covariant dimension flag)
             -> V.Vector coo
-            -> m (V.Vector (COOEl coo), D.DimsE V.Vector Ix)
+            -> m (V.Vector (COOEl coo), D.Variance V.Vector Ix)
 compressCOO ixs v0 = do 
   (vFinal, se) <- foldlM go (v0, D.empty) ixs
   pure (cooElem <$> vFinal, se)
   where
-    go (v, se) (i, n, dense) = do
+    go (v, se) (i, n, dense, covar) = do
       v' <- sortOnIx v i
       if not dense
         then do 
           let vp = ptrV i n v'
               vi = ixCOO i <$> v'
               sdim = D.sparseDimE vp vi n
-          pure (v', D.insert i sdim se)
+              sdimv | covar = D.co sdim
+                    | otherwise = D.contra sdim
+          pure (v', D.insert i sdimv se)
         else do
-          let ddim = D.denseDimE n 
-          pure (v', D.insert i ddim se)
+          let ddim = D.denseDimE n
+              ddimv | covar = D.co ddim
+                    | otherwise = D.contra ddim
+          pure (v', D.insert i ddimv se)
 
 
 sortOnIx :: (PrimMonad m, COO coo) =>
@@ -172,6 +176,13 @@ data TExpr i a =
     TConst a
   | TContract i i (TExpr i a) (TExpr i a)
   deriving (Eq, Show)
+
+tcontract = TContract
+
+
+-- te0 t1 t2 t3 = TContract 2 t1 (TContract 3 t2 t3)
+
+
 
 
 
