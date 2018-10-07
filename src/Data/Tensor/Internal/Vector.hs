@@ -1,4 +1,4 @@
-{-# language TypeFamilies, FlexibleContexts #-}
+{-# language TypeFamilies, FlexibleContexts, LambdaCase #-}
 module Data.Tensor.Internal.Vector where
 
 import Data.Int (Int32)
@@ -13,19 +13,17 @@ import qualified Data.Vector.Mutable as VM
 -- import qualified Data.IntMap as IM
 import Control.Monad.Primitive
 import Control.Monad.ST
-
-
 -- import Data.Function (on)
 import Data.Ord
 import qualified Data.List.NonEmpty as NE
 -- import Prelude hiding ( (!!), length )
-
 -- import Control.Parallel.Strategies (using, rpar, parTraversable)
-
 import qualified Data.Dim as D
 
 
--- | I think it's a good idea to fix the type of the address space. For now it's set here as 'Int32'.
+-- | Here we fix the size of the address space.
+--
+-- @type Ix = Int32@
 type Ix = Int32
 
 -- | Row types that can be indexed via an integer parameter
@@ -137,6 +135,33 @@ csPtrV ixf n xs = V.create createf where
 
 
 
+
+
+
+
+
+data Expr a =
+    Const a
+  | Plus (Expr a) (Expr a)
+  | Times (Expr a) (Expr a)
+  deriving (Eq, Show)
+
+-- instance Num (Expr a) where
+--   a + b = Plus a b
+--   a * b = Times a b
+
+k :: a -> Expr a
+k = Const
+
+plus, times :: Expr a -> Expr a -> Expr a
+plus = Plus
+times = Times
+
+eval :: Num a => Expr a -> a
+eval = \case
+  Const x -> x
+  Plus e1 e2 -> eval e1 + eval e2
+  Times e1 e2 -> eval e1 * eval e2
 
 
 -- -- | Example usage : sparse vector

@@ -13,7 +13,7 @@ Note : no rank or dimensionality information is known at compile time, that is, 
 -}
 module Data.Dim (
   -- * Variance annotation
-    Variance(..), V(..)
+    Variance(..), V(..), insertV
     , coIx, contraIx
   -- ** Convenience constructors
   -- , mkVarVector, mkVarCoVector, mkVarMatrix    
@@ -30,6 +30,7 @@ import Control.Arrow ((***))
 import Data.Int (Int32(..), Int64(..))
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.IntMap as IM
+import qualified Data.Map.Strict as M
 
 import Data.Shape.Types
 
@@ -71,42 +72,22 @@ Tensor product shorthand (Einstein notation) prescribes that only pairs of tenso
 -}
 
 
--- | Variance annotation, containing the dimension metadata
-newtype Variance v i = Variance {
-  unV :: V (DimsE v i) } deriving (Eq, Show)
-
 -- | Variance annotation
-data V a =
-    CoVar a     -- ^ Only covariant indices 
-  | ContraVar a -- ^ Only contravariant indices
-  | BothVar a a -- ^ Both variant and contravariant indices
-  deriving (Eq, Show, Functor)            
+data V = Co | Contra deriving (Eq, Ord, Show)
 
--- transp = \case
---   CoVar x -> ContraVar x
+newtype Variance v i = Variance {
+  unV :: M.Map V (DimsE v i) } deriving (Eq, Show)
 
-
--- data Variance v i =
---     CoVar (DimsE v i) -- ^ Only covariant indices 
---   | ContraVar (DimsE v i) -- ^ Only contravariant indices
---   | BothVar (DimsE v i) (DimsE v i) -- ^ Both variant and contravariant indices
---   deriving (Eq, Show)
+insertV :: V -> DimsE v i -> Variance v i -> Variance v i
+insertV vann di (Variance m) = Variance $ M.insert vann di m
 
 -- | Get covariant indices
--- coIx :: Variance v i -> Maybe (DimsE v i)
-coIx :: V a -> Maybe a
-coIx = \case
-  CoVar ne -> Just ne
-  BothVar ne _ -> Just ne
-  _ -> Nothing
+coIx :: Variance v i -> Maybe (DimsE v i)
+coIx (Variance mm) = M.lookup Co mm
 
 -- | Get contravariant indices
--- contraIx :: Variance v i -> Maybe (DimsE v i)
-contraIx :: V a -> Maybe a
-contraIx = \case
-  BothVar _ ne -> Just ne
-  ContraVar ne -> Just ne
-  _ -> Nothing
+contraIx :: Variance v i -> Maybe (DimsE v i)
+contraIx (Variance mm) = M.lookup Contra mm
 
 
 -- -- | A vector has a single contravariant index
@@ -123,10 +104,11 @@ contraIx = \case
 
 
 instance Integral i => TShape (Variance v i) where
-  tdim sh = case unV sh of
-    CoVar ne -> (toDims ne, [])
-    ContraVar ne -> ([], toDims ne)
-    BothVar neco necontra -> (toDims neco, toDims necontra)
+  tdim = getTDim
+
+getTDim :: Integral i => Variance v i -> ([Int], [Int])
+getTDim va = (gettd coIx, gettd contraIx) where
+  gettd f = maybe [] toDims (f va)
 
 toDims :: Integral i => DimsE v i -> [Int]
 toDims ne = (fromIntegral . dimE) `map` toList ne
