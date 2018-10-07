@@ -29,20 +29,20 @@ import qualified Data.Dim as D
 type Ix = Int32
 
 -- | Row types that can be indexed via an integer parameter
-class Row r where
-  type REl r :: *
-  ixRow :: Int -> r -> Ix
-  mkRow :: [Ix] -> REl r -> r
-  rowElem :: r -> REl r
+class COO r where
+  type COOEl r :: *
+  ixCOO :: Int -> r -> Ix
+  mkCOO :: [Ix] -> COOEl r -> r
+  cooElem :: r -> COOEl r
 
-instance Row (Nz a) where
-  type REl (Nz a) = a
-  ixRow = ixUnsafe
-  mkRow = fromList
-  rowElem = nzEl
+instance COO (Nz a) where
+  type COOEl (Nz a) = a
+  ixCOO = ixUnsafe
+  mkCOO = fromList
+  cooElem = nzEl
 
-compareIxRow :: Row r => Int -> r -> r -> Ordering
-compareIxRow j = comparing (ixRow j)  
+compareIxRow :: COO r => Int -> r -> r -> Ordering
+compareIxRow j = comparing (ixCOO j)  
 
 
 -- | A nonzero element in coordinate form
@@ -58,6 +58,13 @@ fromList = Nz . NE.fromList
 ixUnsafe :: Int -> Nz a -> Ix
 ixUnsafe i (Nz ne _) = ne NE.!! i  
 
+-- ixUnsafeTup3 :: Int -> (Ix, Ix, Ix) -> Ix
+-- ixUnsafeTup3 i (a, b, c) = case i of
+--   0 -> a
+--   1 -> b
+--   2 -> c
+--   _ -> error "derp"
+
 -- | Unsafe : it assumes the index is between 0 and (length - 1)
 compareIx :: Int -> Nz a -> Nz a -> Ordering
 compareIx i = comparing (ixUnsafe i)
@@ -70,58 +77,40 @@ compareIx i = comparing (ixUnsafe i)
 -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
 --
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
-compressCOO :: (PrimMonad m, Foldable t, Row r) =>
-               t (Int, Ix, Bool)
-            -> V.Vector r
-            -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
+compressCOO :: (PrimMonad m, Foldable t, COO coo) =>
+               t (Int, Ix, Bool) -- ^ (Index, Dimensionality, Dense dimension flag)
+            -> V.Vector coo
+            -> m (V.Vector (COOEl coo), D.DimsE V.Vector Ix)
 compressCOO ixs v0 = do 
-  (St vFinal se) <- foldlM go (St v0 D.empty) ixs
-  pure (rowElem <$> vFinal, se)
+  (vFinal, se) <- foldlM go (v0, D.empty) ixs
+  pure (cooElem <$> vFinal, se)
   where
-    go (St v se) (i, n, dense) = do
+    go (v, se) (i, n, dense) = do
       v' <- sortOnIx v i
       if not dense
-        then
-        do 
+        then do 
           let vp = ptrV i n v'
-              vi = ixRow i <$> v'
+              vi = ixCOO i <$> v'
               sdim = D.sparseDimE vp vi n
-          pure (St v' (D.insert i sdim se))
-        else pure (St v' (D.insert i (D.denseDimE n) se))
-
-data St a = St {
-    stv :: V.Vector a
-  , ste :: D.DimsE V.Vector Ix
-  } deriving (Eq, Show)
+          pure (v', D.insert i sdim se)
+        else do
+          let ddim = D.denseDimE n 
+          pure (v', D.insert i ddim se)
 
 
--- | Example usage : sparse vector
-sv :: (PrimMonad m, Row r) =>
-      Ix -> V.Vector r -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
-sv m = compressCOO [(0, m, False)]
-
--- | Example usage : CSR sparse matrix
-csr :: (PrimMonad m, Row r) =>
-       Ix
-    -> Ix
-    -> V.Vector r
-    -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
-csr m n = compressCOO [(0, m, True), (1, n, False)]
-
-
-sortOnIx :: (PrimMonad m, Row r) =>
-            V.Vector r -> Int -> m (V.Vector r)
+sortOnIx :: (PrimMonad m, COO coo) =>
+            V.Vector coo -> Int -> m (V.Vector coo)
 sortOnIx v j = do
   vm <- V.thaw v
   VSM.sortBy (compareIxRow j) vm
   V.freeze vm
 
-ptrV :: Row r =>
+ptrV :: COO coo =>
         Int   -- ^ Index 
      -> Ix     -- ^ Dimensionality 
-     -> V.Vector r
+     -> V.Vector coo
      -> V.Vector Ix
-ptrV j = csPtrV (ixRow j)
+ptrV j = csPtrV (ixCOO j)
   
 
 -- | Given a number of rows(resp. columns) `n` and a _sorted_ Vector of Integers in increasing order (containing the column (resp. row) indices of nonzero entries), return the cumulative vector of nonzero entries of length `n` (the "column (resp. row) pointer" of the CSR(CSC) format). NB: Fused count-and-accumulate
@@ -147,3 +136,18 @@ csPtrV ixf n xs = V.create createf where
 
 
 
+
+
+
+-- -- | Example usage : sparse vector
+-- sv :: (PrimMonad m, Row r) =>
+--       Ix -> V.Vector r -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
+-- sv m = compressCOO [(0, m, False)]
+
+-- -- | Example usage : CSR sparse matrix
+-- csr :: (PrimMonad m, Row r) =>
+--        Ix
+--     -> Ix
+--     -> V.Vector r
+--     -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
+-- csr m n = compressCOO [(0, m, True), (1, n, False)]
