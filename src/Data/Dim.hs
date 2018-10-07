@@ -18,7 +18,7 @@ module Data.Dim (
   -- ** Convenience constructors
   -- , mkVarVector, mkVarCoVector, mkVarMatrix    
   -- * Dimension metadata
-  , DimsE(..), empty, insert
+  , DimsE(..), empty, insert, size
   , DimE(..), dimE, denseDimE, sparseDimE
   , Dd(..), Sd(..)
 
@@ -41,6 +41,9 @@ import Data.Shape.Types
 -- | A numbered set of dimension metadata
 newtype DimsE v i = DimsE {
   unDimsE :: IM.IntMap (DimE v i) } deriving (Eq, Show)
+
+size :: DimsE v i -> Int
+size (DimsE mm) = IM.size mm
 
 empty :: DimsE v i
 empty = DimsE IM.empty

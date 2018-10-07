@@ -139,6 +139,10 @@ csPtrV ixf n xs = V.create createf where
 
 
 
+{-|
+Tensor expressions are constructed as binary syntax trees.
+
+-}
 
 data Expr a =
     Const a
@@ -146,9 +150,6 @@ data Expr a =
   | Times (Expr a) (Expr a)
   deriving (Eq, Show)
 
--- instance Num (Expr a) where
---   a + b = Plus a b
---   a * b = Times a b
 
 k :: a -> Expr a
 k = Const
@@ -162,6 +163,10 @@ eval = \case
   Const x -> x
   Plus e1 e2 -> eval e1 + eval e2
   Times e1 e2 -> eval e1 * eval e2
+
+
+
+
 
 
 -- -- | Example usage : sparse vector
