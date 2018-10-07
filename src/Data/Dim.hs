@@ -14,23 +14,22 @@ Note : no rank or dimensionality information is known at compile time, that is, 
 module Data.Dim (
   -- * Variance annotation
     Variance(..), V(..), co, contra
-  , coIx, contraIx
+  -- , coIx, contraIx
   -- -- ** Convenience constructors
   -- -- , mkVarVector, mkVarCoVector, mkVarMatrix    
-  -- -- * Dimension metadata
   , empty, insert, rekey
+  -- * Dimension metadata  
   , DimE(..), dimE, denseDimE, sparseDimE
   , Dd(..), Sd(..)
-
   ) where
 
-import Control.Applicative hiding (empty)
-import Data.Maybe (isJust)
-import Control.Arrow ((***))
-import Data.Int (Int32(..), Int64(..))
+-- import Control.Applicative hiding (empty)
+-- import Data.Maybe (isJust)
+-- import Control.Arrow ((***))
+-- import Data.Int (Int32(..), Int64(..))
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.IntMap as IM
-import qualified Data.Map.Strict as M
+-- import qualified Data.Map.Strict as M
 
 import Data.Shape.Types
 
@@ -38,6 +37,26 @@ import Data.Shape.Types
 {- 
 Tensor product shorthand (Einstein notation) prescribes that only pairs of tensors with common indices can be multiplied. In particular, in the index pair one index should be variant and the other contravariant.
 -}
+
+
+newtype Variance v i = Variance { unVar :: Var (DimE v i) } deriving (Eq, Show)
+
+instance Integral i => TShape (Variance v i) where
+  tdim = getTDim . unVar
+
+getTDim :: Integral i => Var (DimE v i) -> ([Int], [Int])
+getTDim va = (gettd coIx, gettd contraIx) where
+  gettd f = maybe [] toDims (f va)
+  
+empty :: Variance v i
+empty = Variance emptyVar
+
+rekey :: [IM.Key] -> Variance v i -> Variance v i
+rekey ks (Variance v) = Variance $ rekeyVar ks v
+
+insert :: IM.Key -> V (DimE v i) -> Variance v i -> Variance v i
+insert k v (Variance va) = Variance $ insertVar k v va
+
 
 
 -- | Variance annotation
@@ -62,8 +81,8 @@ emptyVar = Var IM.empty
 insertVar :: IM.Key -> V a -> Var a -> Var a
 insertVar i di (Var m) = Var $ IM.insert i di m
 
-mapKeysV :: (IM.Key -> IM.Key) -> Var a -> Var a
-mapKeysV fk (Var im) = Var $ IM.mapKeys fk im
+-- mapKeysV :: (IM.Key -> IM.Key) -> Var a -> Var a
+-- mapKeysV fk (Var im) = Var $ IM.mapKeys fk im
 
 filterV :: (V a -> Bool) -> Var a -> Var a
 filterV ff (Var im) = Var $ IM.filter ff im
@@ -87,25 +106,6 @@ isCo :: V a -> Bool
 isCo v = case v of Co _ -> True
                    _    -> False
 
-
-instance Integral i => TShape (Variance v i) where
-  tdim = getTDim . unVar
-
-newtype Variance v i = Variance { unVar :: Var (DimE v i) } deriving (Eq, Show)
-
-empty :: Variance v i
-empty = Variance emptyVar
-
-rekey :: [IM.Key] -> Variance v i -> Variance v i
-rekey ks (Variance v) = Variance $ rekeyVar ks v
-
-insert :: IM.Key -> V (DimE v i) -> Variance v i -> Variance v i
-insert k v (Variance va) = Variance $ insertVar k v va
-
-getTDim :: Integral i => Var (DimE v i) -> ([Int], [Int])
-getTDim va = (gettd coIx, gettd contraIx) where
-  gettd f = maybe [] toDims (f va)
-
 toDims :: Integral i => Var (DimE v i) -> [Int]
 toDims ne = (fromIntegral . dimE . unV) `map` toList ne
 
@@ -121,13 +121,21 @@ rekeyVar ixm (Var im) = fromList $ zip ixm vm
   where
     (_, vm) = unzip $ IM.toList im
 
+intersectionWithKey
+  :: (IM.Key -> V a1 -> V a2 -> V a3) -> Var a1 -> Var a2 -> Var a3
+intersectionWithKey f (Var m1) (Var m2) = Var $ IM.intersectionWithKey f m1 m2
+
+
+    
+
+
+
+
 
 -- lookupDim :: DimsE v i -> IM.Key -> Maybe (DimE v i)
 -- lookupDim im i = IM.lookup i (unDimsE im)
 
-intersectionWithKey
-  :: (IM.Key -> V a1 -> V a2 -> V a3) -> Var a1 -> Var a2 -> Var a3
-intersectionWithKey f (Var m1) (Var m2) = Var $ IM.intersectionWithKey f m1 m2
+
 
 
 
@@ -155,10 +163,6 @@ intersectionWithKey f (Var m1) (Var m2) = Var $ IM.intersectionWithKey f m1 m2
 
 
 
-
-
--- | Contraction indices
-newtype CIx = CIx (NonEmpty Int) deriving (Eq, Show)
 
   
 -- | Tensor dimensions can be either dense or sparse

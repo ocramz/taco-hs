@@ -174,13 +174,25 @@ eval = \case
 
 data TExpr i a =
     TConst a
-  | TContract i i (TExpr i a) (TExpr i a)
+  | TCompWise (TExpr i a) (TExpr i a)  -- ^ Componentwise operations
+  | TInner (TExpr i a) (TExpr i a) -- ^ Contraction (inner product)
+  | TOuter (I i) (TExpr i a) (TExpr i a) -- ^ Exterior product
   deriving (Eq, Show)
 
-tcontract = TContract
-
-
 -- te0 t1 t2 t3 = TContract 2 t1 (TContract 3 t2 t3)
+
+-- contract2 i j ta tb = TContract i z z where
+--   z = TContract j ta tb
+
+
+outer2 i j = TOuter (I2 i j)
+
+-- | Index sets
+data I i =
+    I1 i
+  | I2 i i
+  | I3 i i i   -- | ...
+  deriving (Eq, Show)
 
 
 
@@ -189,7 +201,7 @@ tcontract = TContract
 -- -- | Example usage : sparse vector
 -- sv :: (PrimMonad m, Row r) =>
 --       Ix -> V.Vector r -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
--- sv m = compressCOO [(0, m, False)]
+-- sv m = compressCOO [(0, m, False, False)]
 
 -- -- | Example usage : CSR sparse matrix
 -- csr :: (PrimMonad m, Row r) =>
@@ -197,4 +209,4 @@ tcontract = TContract
 --     -> Ix
 --     -> V.Vector r
 --     -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
--- csr m n = compressCOO [(0, m, True), (1, n, False)]
+-- csr m n = compressCOO [(0, m, True, False), (1, n, False, True)]
