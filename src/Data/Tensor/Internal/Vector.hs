@@ -165,7 +165,13 @@ eval = \case
   Times e1 e2 -> eval e1 * eval e2
 
 
+-- --
 
+
+data TExpr i a =
+    TConst a
+  | TContract i i (TExpr i a) (TExpr i a)
+  deriving (Eq, Show)
 
 
 
