@@ -121,6 +121,9 @@ rekeyVar ixm (Var im) = fromList $ zip ixm vm
   where
     (_, vm) = unzip $ IM.toList im
 
+rekey0 :: Var a -> Var a
+rekey0 = rekeyVar [0 .. ]    
+
 intersectionWithKey
   :: (IM.Key -> V a1 -> V a2 -> V a3) -> Var a1 -> Var a2 -> Var a3
 intersectionWithKey f (Var m1) (Var m2) = Var $ IM.intersectionWithKey f m1 m2

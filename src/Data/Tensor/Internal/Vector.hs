@@ -175,26 +175,22 @@ eval = \case
 data TExpr i a =
     TConst a
   | TCompWise (TExpr i a) (TExpr i a)  -- ^ Componentwise operations
-  | TInner (TExpr i a) (TExpr i a) -- ^ Contraction (inner product)
-  | TOuter (I i) (TExpr i a) (TExpr i a) -- ^ Exterior product
+  | TInner [P i] (TExpr i a) (TExpr i a) -- ^ Contraction (inner product)
+  | TOuter [P i] (TExpr i a) (TExpr i a) -- ^ Exterior product
   deriving (Eq, Show)
 
--- te0 t1 t2 t3 = TContract 2 t1 (TContract 3 t2 t3)
-
--- contract2 i j ta tb = TContract i z z where
---   z = TContract j ta tb
+-- contract i j = TInner [P i j]
 
 
-outer2 i j = TOuter (I2 i j)
+-- | Pair of indices
+data P i = P i i  deriving (Eq, Show)
 
--- | Index sets
-data I i =
-    I1 i
-  | I2 i i
-  | I3 i i i   -- | ...
-  deriving (Eq, Show)
-
-
+-- -- | Index sets
+-- data I i =
+--     I1 i
+--   | I2 i i
+--   | I3 i i i   -- | ...
+--   deriving (Eq, Show)
 
 
 
