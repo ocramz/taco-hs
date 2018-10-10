@@ -20,8 +20,8 @@ library
   hs-source-dirs:      src
   exposed-modules:     Language.Taco.Backend.Accelerate
   build-depends:       base >= 4.7 && < 5
-                     , taco
-                     , accelerate
+                     , taco >= 0.3.0.0
+                     , accelerate >= 1.2
                      , accelerate-io
 
 

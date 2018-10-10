@@ -77,7 +77,7 @@ compareIx i = comparing (ixUnsafe i)
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
 compressCOO :: (PrimMonad m, Foldable t, COO coo) =>
                t (Int, Ix, Bool, Bool) -- ^ (Index, Dimensionality, Dense dimension flag, Covariant dimension flag)
-            -> V.Vector coo
+            -> V.Vector coo  -- ^ Vector of tensor NZ elements in coordinate encoding.
             -> m (V.Vector (COOEl coo), D.Variance V.Vector Ix)
 compressCOO ixs v0 = do 
   (vFinal, se) <- foldlM go (v0, D.empty) ixs
@@ -135,6 +135,10 @@ csPtrV ixf n xs = V.create createf where
                               loop v (V.drop lp ll) (succ i) count'
     loop vm xs 1 c
     return vm
+
+
+
+
 
 
 
@@ -206,3 +210,20 @@ data P i = P i i  deriving (Eq, Show)
 --     -> V.Vector r
 --     -> m (V.Vector (REl r), D.DimsE V.Vector Ix)
 -- csr m n = compressCOO [(0, m, True, False), (1, n, False, True)]
+
+
+
+
+
+
+
+-- | playground
+
+-- newtype Mu f = In { out :: f (Mu f)}
+
+
+-- cata :: Functor f => (f b -> b) -> Mu f -> b
+-- cata phi = phi . fmap (cata phi) . out
+
+-- ana :: Functor f => (a -> f a) -> a -> Mu f
+-- ana  psi = In  . fmap (ana  psi) . psi
