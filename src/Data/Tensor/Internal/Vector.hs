@@ -51,6 +51,10 @@ compressCOO ixs v0 = do
           pure (v', DV.insertWhen covar i ddim se)
 
 
+
+
+{- test data :
+
 v0 = V.fromList [
     fromListNz [0,0] 6
   , fromListNz [2,0] 5
@@ -58,8 +62,6 @@ v0 = V.fromList [
   , fromListNz [0,3] 8
   , fromListNz [2,3] 7
                 ]
-
-{- test data :
 
 λ> compressCOO [(0,3,False,True), (1,4,False,False)] v0
 ([6,5,9,8,7],Var {unVar = fromList [(Co 0,DimE {unDimE = Right (Sd {sPtr = [0,0,0], sIdx = [0,0,0,2,2], sDim = 3})}),(Contra 1,DimE {unDimE = Right (Sd {sPtr = [0,0,0,0], sIdx = [0,0,2,3,3], sDim = 4})})]})
@@ -83,31 +85,23 @@ ptrV j = csPtrV (ixCOO j)
 
 -- | Given a number of rows(resp. columns) `n` and a _sorted_ Vector of Integers in increasing order (containing the column (resp. row) indices of nonzero entries), return the cumulative vector of nonzero entries of length `n` (the "column (resp. row) pointer" of the CSR(CSC) format). NB: Fused count-and-accumulate
 -- E.g.:
--- > csPtrV 4 (V.fromList [1,1,2,3])
+-- > csPtrV 3 (V.fromList [0,0,1,2])
 -- [0,2,3,4]
--- csPtrV :: Int -> Int32 -> V.Vector (Row Int32) -> V.Vector Int32
 csPtrV :: (r -> Ix) -> Ix -> V.Vector r -> V.Vector Ix
 csPtrV ixf n xs = V.create createf where
   createf :: ST s (VM.MVector s Ix)
   createf = do
     let c = 0
-    vm <- VM.new (fromIntegral n)
+    vm <- VM.new (fromIntegral $ n + 1)
     VM.write vm 0 0  -- write `0` at position 0
     let loop v ll i count | i == n = return ()
                           | otherwise = do
                               let lp = V.length $ V.takeWhile (\r -> ixf r == i) ll
                                   count' = count + lp
-                              VM.write v (fromIntegral i) (fromIntegral count')
+                              VM.write v (fromIntegral $ i + 1) (fromIntegral count')
                               loop v (V.drop lp ll) (succ i) count'
-    loop vm xs 1 c
+    loop vm xs 0 c
     return vm
-
-
-
-
-
-
-
 
 
 
