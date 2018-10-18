@@ -51,8 +51,6 @@ compressCOO ixs v0 = do
           pure (v', DV.insertWhen covar i ddim se)
 
 
-{- test data :
-
 v0 = V.fromList [
     fromListNz [0,0] 6
   , fromListNz [2,0] 5
@@ -61,22 +59,22 @@ v0 = V.fromList [
   , fromListNz [2,3] 7
                 ]
 
+{- test data :
+
 λ> compressCOO [(0,3,False,True), (1,4,False,False)] v0
 ([6,5,9,8,7],Var {unVar = fromList [(Co 0,DimE {unDimE = Right (Sd {sPtr = [0,0,0], sIdx = [0,0,0,2,2], sDim = 3})}),(Contra 1,DimE {unDimE = Right (Sd {sPtr = [0,0,0,0], sIdx = [0,0,2,3,3], sDim = 4})})]})
 
 -}
 
-
-
 sortOnIx :: (PrimMonad m, COO coo) =>
-            V.Vector coo -> Int -> m (V.Vector coo)
+            V.Vector coo -> I -> m (V.Vector coo)
 sortOnIx v j = do
   vm <- V.thaw v
   VSM.sortBy (compareIxCOO j) vm
   V.freeze vm
 
 ptrV :: COO coo =>
-        Int   -- ^ Index 
+        I   -- ^ Index 
      -> Ix     -- ^ Dimensionality 
      -> V.Vector coo
      -> V.Vector Ix
