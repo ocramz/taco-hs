@@ -68,32 +68,44 @@ import Data.Dim
 --   , tData :: v e  -- ^ Tensor nonzero entries
 --   } deriving (Eq, Functor)
 
-data Tensor v i e = T {
-    tIx :: Variance v i
-  , tData :: v e } deriving (Eq, Functor)
-
-
-instance Show i => Show (Tensor v i e) where
-  show (T tv _) = unwords ["Variance :", show tv]
-
--- | Number of nonzero entries in the tensor data
-nnz :: Foldable v => Tensor v i e -> Int
-nnz = length . tData
 
 
 
 
--- | Density of nonzero entries
-density :: (Foldable v, Integral i, Fractional a) => Tensor v i e -> a
-density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
 
-instance Integral i => TShape (Tensor v i e) where
-  tdim (T tvar _) = tdim tvar
 
--- | Maximum number of elements
-maxNElems :: Integral i => Tensor v i e -> Int
-maxNElems t = product pco * product pcontra where
-  (pco, pcontra) = tdim t
+
+
+-- data Tensor v i e = T {
+--     tIx :: Variance v i
+--   , tData :: v e } deriving (Eq, Functor)
+
+
+-- instance Show i => Show (Tensor v i e) where
+--   show (T tv _) = unwords ["Variance :", show tv]
+
+-- -- | Number of nonzero entries in the tensor data
+-- nnz :: Foldable v => Tensor v i e -> Int
+-- nnz = length . tData
+
+
+
+
+-- -- | Density of nonzero entries
+-- density :: (Foldable v, Integral i, Fractional a) => Tensor v i e -> a
+-- density t = fromIntegral (nnz t) / fromIntegral (maxNElems t)
+
+-- instance Integral i => TShape (Tensor v i e) where
+--   tdim (T tvar _) = tdim tvar
+
+-- -- | Maximum number of elements
+-- maxNElems :: Integral i => Tensor v i e -> Int
+-- maxNElems t = product pco * product pcontra where
+--   (pco, pcontra) = tdim t
+
+
+
+
 
 
 

@@ -75,29 +75,30 @@ compareIx i = comparing (ixUnsafe i)
 -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
 --
 -- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
-compressCOO :: (PrimMonad m, Foldable t, COO coo) =>
-               t (Int, Ix, Bool, Bool) -- ^ (Index, Dimensionality, Dense dimension flag, Covariant dimension flag)
-            -> V.Vector coo  -- ^ Vector of tensor NZ elements in coordinate encoding.
-            -> m (V.Vector (COOEl coo), D.Variance V.Vector Ix)
-compressCOO ixs v0 = do 
-  (vFinal, se) <- foldlM go (v0, D.empty) ixs
-  pure (cooElem <$> vFinal, se)
-  where
-    go (v, se) (i, n, dense, covar) = do
-      v' <- sortOnIx v i
-      if not dense
-        then do 
-          let vp = ptrV i n v'
-              vi = ixCOO i <$> v'
-              sdim = D.sparseDimE vp vi n
-              sdimv | covar = D.co sdim
-                    | otherwise = D.contra sdim
-          pure (v', D.insert i sdimv se)
-        else do
-          let ddim = D.denseDimE n
-              ddimv | covar = D.co ddim
-                    | otherwise = D.contra ddim
-          pure (v', D.insert i ddimv se)
+-- compressCOO :: (PrimMonad m, Foldable t, COO coo) =>
+--                t (Int, Ix, Bool, Bool) -- ^ (Index, Dimensionality, Dense dimension flag, Covariant dimension flag)
+--             -> V.Vector coo  -- ^ Vector of tensor NZ elements in coordinate encoding.
+--             -> m (V.Vector (COOEl coo), D.Variance V.Vector Ix)
+
+-- compressCOO ixs v0 = do 
+--   (vFinal, se) <- foldlM go (v0, D.empty) ixs
+--   pure (cooElem <$> vFinal, se)
+--   where
+--     go (v, se) (i, n, dense, covar) = do
+--       v' <- sortOnIx v i
+--       if not dense
+--         then do 
+--           let vp = ptrV i n v'
+--               vi = ixCOO i <$> v'
+--               sdim = D.sparseDimE vp vi n
+--               sdimv | covar = D.co sdim
+--                     | otherwise = D.contra sdim
+--           pure (v', D.insert i sdimv se)
+--         else do
+--           let ddim = D.denseDimE n
+--               ddimv | covar = D.co ddim
+--                     | otherwise = D.contra ddim
+--           pure (v', D.insert i ddimv se)
 
 
 sortOnIx :: (PrimMonad m, COO coo) =>

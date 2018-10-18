@@ -13,13 +13,13 @@ Note : no rank or dimensionality information is known at compile time, that is, 
 -}
 module Data.Dim (
   -- * Variance annotation
-    Variance(..), V(..), co, contra
-  -- , coIx, contraIx
-  -- -- ** Convenience constructors
-  -- -- , mkVarVector, mkVarCoVector, mkVarMatrix    
-  , empty, insert, rekey
+  --   Variance(..), V(..), co, contra
+  -- -- , coIx, contraIx
+  -- -- -- ** Convenience constructors
+  -- -- -- , mkVarVector, mkVarCoVector, mkVarMatrix    
+  -- , empty, insert, rekey
   -- * Dimension metadata  
-  , DimE(..), dimE, denseDimE, sparseDimE
+    DimE(..), dimE, denseDimE, sparseDimE
   , Dd(..), Sd(..)
   ) where
 
@@ -29,7 +29,7 @@ module Data.Dim (
 -- import Data.Int (Int32(..), Int64(..))
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.IntMap as IM
--- import qualified Data.Map.Strict as M
+import qualified Data.Map.Strict as M
 
 import Data.Shape.Types
 
@@ -39,135 +39,7 @@ Tensor product shorthand (Einstein notation) prescribes that only pairs of tenso
 -}
 
 
-newtype Variance v i = Variance { unVar :: Var (DimE v i) } deriving (Eq, Show)
 
-instance Integral i => TShape (Variance v i) where
-  tdim = getTDim . unVar
-
-getTDim :: Integral i => Var (DimE v i) -> ([Int], [Int])
-getTDim va = (gettd coIx, gettd contraIx) where
-  gettd f = maybe [] toDims (f va)
-  
-empty :: Variance v i
-empty = Variance emptyVar
-
-rekey :: [IM.Key] -> Variance v i -> Variance v i
-rekey ks (Variance v) = Variance $ rekeyVar ks v
-
-insert :: IM.Key -> V (DimE v i) -> Variance v i -> Variance v i
-insert k v (Variance va) = Variance $ insertVar k v va
-
-
-
--- | Variance annotation
-data V a = Co a  -- ^ Covariant
-  | Contra a  -- ^ Contravariant
-  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
-
-co, contra :: a -> V a 
-co = Co
-contra = Contra
-
-unV :: V a -> a
-unV (Co x) = x
-unV (Contra x) = x
-
-newtype Var a =
-  Var (IM.IntMap (V a)) deriving (Eq, Show, Functor, Foldable, Traversable)
-
-emptyVar :: Var a
-emptyVar = Var IM.empty
-
-insertVar :: IM.Key -> V a -> Var a -> Var a
-insertVar i di (Var m) = Var $ IM.insert i di m
-
--- mapKeysV :: (IM.Key -> IM.Key) -> Var a -> Var a
--- mapKeysV fk (Var im) = Var $ IM.mapKeys fk im
-
-filterV :: (V a -> Bool) -> Var a -> Var a
-filterV ff (Var im) = Var $ IM.filter ff im
-
-filterMaybeV :: (V a -> Bool) -> Var a -> Maybe (Var a)
-filterMaybeV q var
-  | null va = Nothing
-  | otherwise = Just va
-  where
-    va = filterV q var
-
--- | Get covariant indices
-coIx :: Var a -> Maybe (Var a)
-coIx = filterMaybeV isCo
-
--- | Get contravariant indices
-contraIx :: Var a -> Maybe (Var a)
-contraIx = filterMaybeV (not . isCo)
-
-isCo :: V a -> Bool
-isCo v = case v of Co _ -> True
-                   _    -> False
-
-toDims :: Integral i => Var (DimE v i) -> [Int]
-toDims ne = (fromIntegral . dimE . unV) `map` toList ne
-
-toList :: Var a -> [V a]
-toList (Var im) = snd `map` IM.toList im
-
-fromList :: [(IM.Key, V a)] -> Var a
-fromList = Var . IM.fromList
-
--- | Discards the keys and applies a new set of keys supplied as the list argument
-rekeyVar :: [IM.Key] -> Var a -> Var a
-rekeyVar ixm (Var im) = fromList $ zip ixm vm
-  where
-    (_, vm) = unzip $ IM.toList im
-
-rekey0 :: Var a -> Var a
-rekey0 = rekeyVar [0 .. ]    
-
-intersectionWithKey
-  :: (IM.Key -> V a1 -> V a2 -> V a3) -> Var a1 -> Var a2 -> Var a3
-intersectionWithKey f (Var m1) (Var m2) = Var $ IM.intersectionWithKey f m1 m2
-
-
-    
-
-
-
-
-
--- lookupDim :: DimsE v i -> IM.Key -> Maybe (DimE v i)
--- lookupDim im i = IM.lookup i (unDimsE im)
-
-
-
-
-
--- -- | The dimension metadata will be labeled in the list consumption order.
--- fromList :: [DimE v i] -> Maybe (DimsE v i)
--- fromList xs | null xs = Nothing
---             | otherwise = Just . DimsE $ IM.fromList $ zip [0 ..] xs
-
-
-
-
-
-
-
--- -- | A vector has a single contravariant index
--- mkVarVector :: DimE v i -> Maybe (Variance v i)
--- mkVarVector ixco = ContraVar <$> fromList [ixco]
--- -- | A co-vector has a single covariant index
--- mkVarCoVector :: DimE v i -> Maybe (Variance v i)
--- mkVarCoVector ixcontra = CoVar <$> fromList [ixcontra]
--- -- | A matrix has one covariant and one contravariant index
--- mkVarMatrix :: DimE v i -> DimE v i -> Maybe (Variance v i)
--- mkVarMatrix ixco ixcontra =
---   fmap Variance (BothVar <$> fromList [ixco] <*> fromList [ixcontra])
-
-
-
-
-  
 -- | Tensor dimensions can be either dense or sparse
 newtype DimE v i = DimE {
   unDimE :: Either (Dd i) (Sd v i)

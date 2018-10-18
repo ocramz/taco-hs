@@ -28,7 +28,8 @@ library
                        Data.Tensor.Compiler.LC                    
                        Data.Dim
                        Data.Shape
-                       Data.Shape.Types                         
+                       Data.Shape.Types
+                       Data.Variance                    
                        Data.Tensor.Exception
   other-modules:       Data.Shape.Static
                        Data.Shape.Static.Rank           
