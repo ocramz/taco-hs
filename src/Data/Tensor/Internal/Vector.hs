@@ -1,7 +1,7 @@
 {-# language TypeFamilies, FlexibleContexts, LambdaCase #-}
 module Data.Tensor.Internal.Vector where
 
-import Data.Int (Int32)
+-- import Data.Int (Int32)
 -- import Data.Foldable (foldl')
 import Data.Foldable (foldlM)
 -- import Data.List (group, groupBy)
@@ -14,98 +14,65 @@ import qualified Data.Vector.Mutable as VM
 import Control.Monad.Primitive
 import Control.Monad.ST
 -- import Data.Function (on)
-import Data.Ord
-import qualified Data.List.NonEmpty as NE
+
+-- import Data.Ord
+-- import qualified Data.List.NonEmpty as NE
 -- import Prelude hiding ( (!!), length )
 -- import Control.Parallel.Strategies (using, rpar, parTraversable)
 import qualified Data.Dim as D
+import qualified Data.Variance as DV
 
-
--- | Here we fix the size of the address space.
---
--- @type Ix = Int32@
-type Ix = Int32
-
--- | Row types that can be indexed via an integer parameter
-class COO r where
-  type COOEl r :: *
-  ixCOO :: Int -> r -> Ix
-  mkCOO :: [Ix] -> COOEl r -> r
-  cooElem :: r -> COOEl r
-
-instance COO (Nz a) where
-  type COOEl (Nz a) = a
-  ixCOO = ixUnsafe
-  mkCOO = fromList
-  cooElem = nzEl
-
-compareIxRow :: COO r => Int -> r -> r -> Ordering
-compareIxRow j = comparing (ixCOO j)  
-
-
--- | A nonzero element in coordinate form
-data Nz a = Nz {
-    nzIxs :: !(NE.NonEmpty Ix)
-  , nzEl :: a } deriving (Eq, Show)
-
-fromList :: [Ix] -> a -> Nz a
-fromList = Nz . NE.fromList
-
-
--- | Unsafe : it assumes the index is between 0 and (length - 1)
-ixUnsafe :: Int -> Nz a -> Ix
-ixUnsafe i (Nz ne _) = ne NE.!! i  
-
--- ixUnsafeTup3 :: Int -> (Ix, Ix, Ix) -> Ix
--- ixUnsafeTup3 i (a, b, c) = case i of
---   0 -> a
---   1 -> b
---   2 -> c
---   _ -> error "derp"
-
--- | Unsafe : it assumes the index is between 0 and (length - 1)
-compareIx :: Int -> Nz a -> Nz a -> Ordering
-compareIx i = comparing (ixUnsafe i)
-
+import Data.Shape.Types
 
 -- | A @Vector (Nz i a)@ contains the coordinate representation of the nonzero entries in a tensor.
 --
 -- The compressed-sparse-fiber (CSF) pointer vectors are computed by sorting this representation over one of its indices and counting repeated indices (with @ptrV@).
 --
 -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
---
--- In this implementation, we use parallel strategies to evaluate in parallel the sort-and-count.
--- compressCOO :: (PrimMonad m, Foldable t, COO coo) =>
---                t (Int, Ix, Bool, Bool) -- ^ (Index, Dimensionality, Dense dimension flag, Covariant dimension flag)
---             -> V.Vector coo  -- ^ Vector of tensor NZ elements in coordinate encoding.
---             -> m (V.Vector (COOEl coo), D.Variance V.Vector Ix)
+compressCOO ::
+  (Foldable t, PrimMonad m, COO r) =>
+     t (I, Ix, Bool, Bool) -- ^ (Index, Dimensionality, Dense dimension flag, Covariant dimension flag)
+  -> V.Vector r -- ^ Vector of tensor NZ elements in coordinate encoding.
+  -> m (V.Vector (COOEl r), DV.Var (D.DimE V.Vector Ix))
+compressCOO ixs v0 = do
+  (vFinal, se) <- foldlM go (v0, DV.empty) ixs
+  pure (cooElem <$> vFinal, se)
+  where
+    go (v, se) (i, n, dense, covar) = do
+      v' <- sortOnIx v i
+      if not dense
+        then do 
+          let vp = ptrV i n v'
+              vi = ixCOO i <$> v'
+              sdim = D.sparseDimE vp vi n
+          pure (v', DV.insertWhen covar i sdim se)
+        else do
+          let ddim = D.denseDimE n
+          pure (v', DV.insertWhen covar i ddim se)
 
--- compressCOO ixs v0 = do 
---   (vFinal, se) <- foldlM go (v0, D.empty) ixs
---   pure (cooElem <$> vFinal, se)
---   where
---     go (v, se) (i, n, dense, covar) = do
---       v' <- sortOnIx v i
---       if not dense
---         then do 
---           let vp = ptrV i n v'
---               vi = ixCOO i <$> v'
---               sdim = D.sparseDimE vp vi n
---               sdimv | covar = D.co sdim
---                     | otherwise = D.contra sdim
---           pure (v', D.insert i sdimv se)
---         else do
---           let ddim = D.denseDimE n
---               ddimv | covar = D.co ddim
---                     | otherwise = D.contra ddim
---           pure (v', D.insert i ddimv se)
+
+{- test data :
+
+v0 = V.fromList [
+    fromListNz [0,0] 6
+  , fromListNz [2,0] 5
+  , fromListNz [0,2] 9
+  , fromListNz [0,3] 8
+  , fromListNz [2,3] 7
+                ]
+
+λ> compressCOO [(0,3,False,True), (1,4,False,False)] v0
+([6,5,9,8,7],Var {unVar = fromList [(Co 0,DimE {unDimE = Right (Sd {sPtr = [0,0,0], sIdx = [0,0,0,2,2], sDim = 3})}),(Contra 1,DimE {unDimE = Right (Sd {sPtr = [0,0,0,0], sIdx = [0,0,2,3,3], sDim = 4})})]})
+
+-}
+
 
 
 sortOnIx :: (PrimMonad m, COO coo) =>
             V.Vector coo -> Int -> m (V.Vector coo)
 sortOnIx v j = do
   vm <- V.thaw v
-  VSM.sortBy (compareIxRow j) vm
+  VSM.sortBy (compareIxCOO j) vm
   V.freeze vm
 
 ptrV :: COO coo =>
