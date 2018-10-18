@@ -53,6 +53,14 @@ compressCOO ixs v0 = do
 
 
 
+v0 = V.fromList [
+    fromListNz [0,0] 6
+  , fromListNz [2,0] 5
+  , fromListNz [0,2] 9
+  , fromListNz [0,3] 8
+  , fromListNz [2,3] 7
+                ]
+
 {- test data :
 
 v0 = V.fromList [
