@@ -31,7 +31,7 @@ import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.IntMap as IM
 import qualified Data.Map.Strict as M
 
-import Data.Shape.Types
+
 
 
 {- 

@@ -1,4 +1,4 @@
-{-# language DeriveFunctor, LambdaCase #-}
+{-# language DeriveFunctor, DeriveFoldable, DeriveTraversable, LambdaCase #-}
 module Data.Variance where
 
 import Data.Dim
@@ -6,8 +6,12 @@ import Data.Dim
 import qualified Data.Map.Strict as M
 import qualified Data.IntMap.Strict as IM
 
+import Control.Arrow (Arrow(..), (***), (&&&))
 
+import Data.Shape.Types
 
+both :: Arrow a => a b' c' -> a (b', b') (c', c')
+both f = f *** f
 
 
 -- | A variance annotation for tensor indices
@@ -21,33 +25,45 @@ eitherVar f = \case
 unV :: V -> Int
 unV = eitherVar id
 
-liftVar2 :: (Int -> Int -> t) -> V -> V -> t
-liftVar2 f v1 v2 = f (unV v1) (unV v2)
+liftV2 :: (Int -> Int -> t) -> V -> V -> t
+liftV2 f v1 v2 = f (unV v1) (unV v2)
 
 -- | This Ord instance only compares the Int content of the constructors
 instance Ord V where
-  compare = liftVar2 compare
+  compare = liftV2 compare
+
+partitionV :: Foldable t => t V -> ([V], [V])
+partitionV va = foldr ins ([], []) va where
+  ins v (l, r) = case v of 
+    x@(Co _)     -> (x : l, r)
+    y@(Contra _) -> (l, y : r)
 
 
-newtype Var a = Var (M.Map V a) deriving (Eq, Show, Functor)
+-- | A tensor variance annotation can be encoded by a Map that is keyed by 'V's (i.e. each index can be either co- or contravariant)
+newtype Var a = Var (M.Map V a) deriving (Eq, Show, Functor, Foldable, Traversable)
 
 fromList :: [(V, a)] -> Var a
 fromList = Var . M.fromList
 
+toList :: Var a -> [(V, a)]
+toList (Var im) = M.toList im
+
+-- | Dimensionality of each index
+toDims :: Integral i => Var (DimE v i) -> [Int]
+toDims ne = (fromIntegral . dimE . snd) `map` toList ne
 
 
 
-
-
+-- | A tensor variance annotation using 'DimE' as metadata
 newtype Variance v i = Variance { unVar :: Var (DimE v i) } deriving (Eq, Show)
 
--- instance Integral i => TShape (Variance v i) where
---   tdim = getTDim . unVar
+instance Integral i => TShape (Variance v i) where
+    -- tdim = getTDim . unVar
 
--- getTDim :: Integral i => Var (DimE v i) -> ([Int], [Int])
--- getTDim va = (gettd coIx, gettd contraIx) where
---   gettd f = maybe [] toDims (f va)
-  
+
+getTDim :: Foldable t => t V -> ([Int], [Int])
+getTDim va = both (map unV) $ partitionV va
+
 -- empty :: Variance v i
 -- empty = Variance emptyVar
 
@@ -101,8 +117,9 @@ newtype Variance v i = Variance { unVar :: Var (DimE v i) } deriving (Eq, Show)
 -- -- mapKeysV :: (IM.Key -> IM.Key) -> Var a -> Var a
 -- -- mapKeysV fk (Var im) = Var $ IM.mapKeys fk im
 
--- filterV :: (V a -> Bool) -> Var a -> Var a
--- filterV ff (Var im) = Var $ IM.filter ff im
+
+-- filterV ff (Var im) = Var $ M.filter ff im
+
 
 -- filterMaybeV :: (V a -> Bool) -> Var a -> Maybe (Var a)
 -- filterMaybeV q var
@@ -123,14 +140,10 @@ newtype Variance v i = Variance { unVar :: Var (DimE v i) } deriving (Eq, Show)
 -- isCo v = case v of Co _ -> True
 --                    _    -> False
 
--- toDims :: Integral i => Var (DimE v i) -> [Int]
--- toDims ne = (fromIntegral . dimE . unV) `map` toList ne
 
--- toList :: Var a -> [V a]
--- toList (Var im) = snd `map` IM.toList im
 
--- fromList :: [(IM.Key, V a)] -> Var a
--- fromList = Var . IM.fromList
+
+
 
 -- -- | Discards the keys and applies a new set of keys supplied as the list argument
 -- rekeyVar :: [IM.Key] -> Var a -> Var a
