@@ -1,10 +1,12 @@
 {-# language DeriveFunctor, DeriveFoldable, DeriveTraversable, LambdaCase #-}
-module Data.Variance (
-  I,
-  V(..),
-  Var(..), empty, insertWhen,
-  Variance(..)
-  ) where
+module Data.Variance
+  -- (
+  -- I,
+  -- V(..),
+  -- Var(..), empty, insertWhen,
+  -- Variance(..)
+  -- )
+  where
 
 import qualified Data.Foldable as F
 import qualified Data.Map.Strict as M
@@ -16,9 +18,43 @@ import Data.Dim
 import Data.Shape.Types
 
 
--- | Promote an arrow to an arrow between homogeneous tuples
-both :: Arrow a => a b' c' -> a (b', b') (c', c')
-both f = f *** f
+-- | A tensor variance annotation using 'DimE' as metadata
+newtype Variance v i = Variance { unVariance :: Var (DimE v i) } deriving (Eq, Show)
+
+-- instance Integral i => TShape (Variance v i) where
+--     tdim = getTDim 
+
+-- -- -- | Computes the index dimensionalities for the (covariant, contravariant) indices
+-- -- getTDim :: (Integral i, Num b) => Variance v i -> ([b], [b])
+-- getTDim vari = both (map (fromIntegral . dimE) . F.toList) $ M.partitionWithKey f mm
+--   where
+--   mm = unVar $ unVariance vari
+--   f k _ = case k of
+--     Co _ -> True
+--     _ -> False
+
+
+
+-- | A tensor variance annotation can be encoded by a Map that is keyed by 'V's (i.e. each index can be either co- or contravariant)
+newtype Var a = Var { unVar :: M.Map V [a] } deriving (Eq, Show, Functor, Foldable, Traversable)
+
+-- fromList :: [(V, a)] -> Var a
+-- fromList = Var . M.fromList
+
+insert :: V -> [a] -> Var a -> Var a
+insert k v (Var mm) = Var $ M.insert k v mm
+
+insertWhen :: Bool -> I -> [a] -> Var a -> Var a
+insertWhen flag ki v mm = insert k v mm where
+  k | flag = Co ki
+    | otherwise = Contra ki
+
+empty :: Var a
+empty = Var M.empty    
+
+-- toList :: Var a -> [(V, a)]
+-- toList (Var im) = M.toList im
+
 
 
 -- | A variance annotation for tensor indices
@@ -40,42 +76,15 @@ instance Ord V where
   compare = liftV2 compare
 
 
--- | A tensor variance annotation can be encoded by a Map that is keyed by 'V's (i.e. each index can be either co- or contravariant)
-newtype Var a = Var { unVar :: M.Map V a } deriving (Eq, Show, Functor, Foldable, Traversable)
-
-fromList :: [(V, a)] -> Var a
-fromList = Var . M.fromList
-
-insert :: V -> a -> Var a -> Var a
-insert k v (Var mm) = Var $ M.insert k v mm
-
-insertWhen :: Bool -> I -> a -> Var a -> Var a
-insertWhen flag ki v mm = insert k v mm where
-  k | flag = Co ki
-    | otherwise = Contra ki
-
-empty :: Var a
-empty = Var M.empty    
-
--- toList :: Var a -> [(V, a)]
--- toList (Var im) = M.toList im
 
 
--- | A tensor variance annotation using 'DimE' as metadata
-newtype Variance v i = Variance { unVariance :: Var (DimE v i) } deriving (Eq, Show)
 
-instance Integral i => TShape (Variance v i) where
-    tdim = getTDim 
 
--- | Computes the index dimensionalities for the (covariant, contravariant) indices
-getTDim :: (Integral i, Num b) => Variance v i -> ([b], [b])
-getTDim vari = both (map (fromIntegral . dimE) . F.toList) $ M.partitionWithKey f mm
-  where
-  mm = unVar $ unVariance vari
-  f k _ = case k of
-    Co _ -> True
-    _ -> False
 
+
+-- | Promote an arrow to an arrow between homogeneous tuples
+both :: Arrow a => a b' c' -> a (b', b') (c', c')
+both f = f *** f
 
 
  

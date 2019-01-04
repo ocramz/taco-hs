@@ -1,7 +1,7 @@
 {-# language TypeOperators, TypeFamilies #-}
 module Data.Shape.Types (
   Z, (:#), (:.), Shape(..), TShape(..), trank, I, Ix
-  , COO(..), compareIxCOO, Nz(..), fromListNz
+  , COO(..), compareIxCOO, Nz(..), nz
                         ) where
 
 import Data.Int (Int32)
@@ -52,7 +52,7 @@ class COO r where
 instance COO (Nz a) where
   type COOEl (Nz a) = a
   ixCOO = ixUnsafe
-  mkCOO = fromListNz
+  mkCOO = nz
   cooElem = nzEl
 
 compareIxCOO :: COO r => I -> r -> r -> Ordering
@@ -64,8 +64,8 @@ data Nz a = Nz {
     nzIxs :: !(NE.NonEmpty Ix)
   , nzEl :: a } deriving (Eq, Show)
 
-fromListNz :: [Ix] -> a -> Nz a
-fromListNz = Nz . NE.fromList
+nz :: [Ix] -> a -> Nz a
+nz = Nz . NE.fromList
 
 
 -- | Unsafe : it assumes the index is between 0 and (length - 1)

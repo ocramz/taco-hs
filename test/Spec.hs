@@ -27,3 +27,4 @@ main = hspec $ do
 -- tdco = mkSh $ zip [I, J ..] [Left (Dd 3), Left (Dd 2)]
 
 -- tdcontra = mkSh $ zip [K] [Left (Dd 2)]
+   

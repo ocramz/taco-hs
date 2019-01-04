@@ -7,8 +7,9 @@ import Data.Foldable (foldlM)
 -- import Data.List (group, groupBy)
 -- import qualified Data.Vector.Algorithms.Radix as VSR (sort, sortBy, Radix(..))
 import qualified Data.Vector.Algorithms.Merge as VSM (sortBy)
+import Data.Vector.Algorithms.Merge (Comparison)
 import qualified Data.Vector as V
--- import qualified Data.Vector.Generic.Mutable as VGM
+import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Mutable as VM
 -- import qualified Data.IntMap as IM
 import Control.Monad.Primitive
@@ -24,54 +25,53 @@ import qualified Data.Variance as DV
 
 import Data.Shape.Types
 
--- | A @Vector (Nz i a)@ contains the coordinate representation of the nonzero entries in a tensor.
---
--- The compressed-sparse-fiber (CSF) pointer vectors are computed by sorting this representation over one of its indices and counting repeated indices (with @ptrV@).
---
--- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
-compressCOO ::
-  (Foldable t, PrimMonad m, COO r) =>
-     t (I, Ix, Bool, Bool) -- ^ (Index, Dimensionality, Dense dimension flag, Covariant dimension flag)
-  -> V.Vector r -- ^ Vector of tensor NZ elements in coordinate encoding.
-  -> m (V.Vector (COOEl r), DV.Var (D.DimE V.Vector Ix))
-compressCOO ixs v0 = do
-  (vFinal, se) <- foldlM go (v0, DV.empty) ixs
-  pure (cooElem <$> vFinal, se)
-  where
-    go (v, se) (i, n, dense, covar) = do
-      v' <- sortOnIx v i
-      if not dense
-        then do 
-          let vp = ptrV i n v'
-              vi = ixCOO i <$> v'
-              sdim = D.sparseDimE vp vi n
-          pure (v', DV.insertWhen covar i sdim se)
-        else do
-          let ddim = D.denseDimE n
-          pure (v', DV.insertWhen covar i ddim se)
+-- -- | A @Vector (Nz i a)@ contains the coordinate representation of the nonzero entries in a tensor.
+-- --
+-- -- The compressed-sparse-fiber (CSF) pointer vectors are computed by sorting this representation over one of its indices and counting repeated indices (with @ptrV@).
+-- --
+-- -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
+-- compressCOO ::
+--   (Foldable t, PrimMonad m, COO r) =>
+--      t (I, Ix, Bool, Bool) -- ^ (Index, Dimensionality, Dense dimension flag, Covariant dimension flag)
+--   -> V.Vector r -- ^ Vector of tensor NZ elements in coordinate encoding.
+--   -> m (V.Vector (COOEl r), DV.Var (D.DimE V.Vector Ix))
+-- compressCOO ixs v0 = do
+--   (vFinal, se) <- foldlM go (v0, DV.empty) ixs
+--   pure (cooElem <$> vFinal, se)
+--   where
+--     go (v, se) (i, n, dense, covar) = do
+--       v' <- sortOnIx v i
+--       if not dense
+--         then do 
+--           let vp = ptrV i n v'
+--               vi = ixCOO i <$> v'
+--               sdim = D.sparseDimE vp vi n
+--           pure (v', DV.insertWhen covar i sdim se)
+--         else do
+--           let ddim = D.denseDimE n
+--           pure (v', DV.insertWhen covar i ddim se)
 
 
 
 
-v0 = V.fromList [
-    fromListNz [0,0] 6
-  , fromListNz [2,0] 5
-  , fromListNz [0,2] 9
-  , fromListNz [0,3] 8
-  , fromListNz [2,3] 7
+v1 = V.fromList [
+    nz [0,0] 6
+  , nz [2,0] 5
+  , nz [0,2] 9
+  , nz [0,3] 8
+  , nz [2,3] 7
                 ]
 
 {- test data :
 
-v0 = V.fromList [
-    fromListNz [0,0] 6
-  , fromListNz [2,0] 5
-  , fromListNz [0,2] 9
-  , fromListNz [0,3] 8
-  , fromListNz [2,3] 7
-                ]
+v1 = V.fromList [
+    nz [0,0] 6
+  , nz [2,0] 5
+  , nz [0,2] 9
+  , nz [0,3] 8
+  , nz [2,3] 7  ]
 
-λ> compressCOO [(0,3,False,True), (1,4,False,False)] v0
+λ> compressCOO [(0,3,False,True), (1,4,False,False)] v1
 ([6,5,9,8,7],Var {unVar = fromList [(Co 0,DimE {unDimE = Right (Sd {sPtr = [0,0,0], sIdx = [0,0,0,2,2], sDim = 3})}),(Contra 1,DimE {unDimE = Right (Sd {sPtr = [0,0,0,0], sIdx = [0,0,2,3,3], sDim = 4})})]})
 
 -}

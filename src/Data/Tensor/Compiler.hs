@@ -20,7 +20,7 @@ import Control.Exception (Exception(..))
 -- import Control.Applicative (liftA2, (<|>))
 
 import Data.Tensor -- (Tensor(..), Sh(..), Dd(..), Sd(..), tshape, tdata, nnz, rank, dim)
-import Data.Tensor.Compiler.PHOAS -- (Phoas(..), let_, let2_, var, lift1, lift2, eval)
+-- import Data.Tensor.Compiler.PHOAS -- (Phoas(..), let_, let2_, var, lift1, lift2, eval)
 
 
 
