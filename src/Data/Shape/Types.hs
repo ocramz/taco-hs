@@ -42,11 +42,14 @@ type I = Int
 -- @type Ix = Int32@
 type Ix = Int32
 
--- | Row types that can be indexed via an integer parameter
+-- | Tensor elements in COOrdinate encoding 
 class COO r where
   type COOEl r :: *
+  -- | Given an index and a tensor element, return the corresponding coordinate
   ixCOO :: I -> r -> Ix
+  -- | Construct a tensor element from a list of coordinates and a value
   mkCOO :: [Ix] -> COOEl r -> r
+  -- | Return the value stored in the given tensor element
   cooElem :: r -> COOEl r
 
 instance COO (Nz a) where
@@ -55,6 +58,7 @@ instance COO (Nz a) where
   mkCOO = nz
   cooElem = nzEl
 
+-- | Compare two rows by ordering on the I'th index
 compareIxCOO :: COO r => I -> r -> r -> Ordering
 compareIxCOO j = comparing (ixCOO j)  
 
@@ -64,6 +68,7 @@ data Nz a = Nz {
     nzIxs :: !(NE.NonEmpty Ix)
   , nzEl :: a } deriving (Eq, Show)
 
+-- | Construct a 'Nz' element from a list of coordinates and a value
 nz :: [Ix] -> a -> Nz a
 nz = Nz . NE.fromList
 

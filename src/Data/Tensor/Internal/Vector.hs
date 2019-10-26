@@ -16,7 +16,7 @@ import Control.Monad.Primitive
 import Control.Monad.ST
 -- import Data.Function (on)
 
--- import Data.Ord
+import Data.Ord (comparing)
 -- import qualified Data.List.NonEmpty as NE
 -- import Prelude hiding ( (!!), length )
 -- import Control.Parallel.Strategies (using, rpar, parTraversable)
@@ -25,16 +25,17 @@ import qualified Data.Variance as DV
 
 import Data.Shape.Types
 
--- -- | A @Vector (Nz i a)@ contains the coordinate representation of the nonzero entries in a tensor.
--- --
--- -- The compressed-sparse-fiber (CSF) pointer vectors are computed by sorting this representation over one of its indices and counting repeated indices (with @ptrV@).
--- --
--- -- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
+-- | A @Vector (Nz i a)@ contains the coordinate representation of the nonzero entries in a tensor.
+--
+-- The compressed-sparse-fiber (CSF) pointer vectors are computed by sorting this representation over one of its indices and counting repeated indices (with @ptrV@).
+--
+-- For example, the CSF computation for a rank-3 sparse tensor will entail 3 sorts and 3 corresponding calls of @ptrV@.
 -- compressCOO ::
 --   (Foldable t, PrimMonad m, COO r) =>
 --      t (I, Ix, Bool, Bool) -- ^ (Index, Dimensionality, Dense dimension flag, Covariant dimension flag)
 --   -> V.Vector r -- ^ Vector of tensor NZ elements in coordinate encoding.
 --   -> m (V.Vector (COOEl r), DV.Var (D.DimE V.Vector Ix))
+
 -- compressCOO ixs v0 = do
 --   (vFinal, se) <- foldlM go (v0, DV.empty) ixs
 --   pure (cooElem <$> vFinal, se)

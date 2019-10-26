@@ -8,7 +8,7 @@ module Data.Variance
   -- )
   where
 
-import qualified Data.Foldable as F
+-- import qualified Data.Foldable as F
 import qualified Data.Map.Strict as M
 -- import qualified Data.IntMap.Strict as IM
 
