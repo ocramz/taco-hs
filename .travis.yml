@@ -13,12 +13,11 @@ addons:
 # The different configurations we want to test. You could also do things like
 # change flags or use --stack-yaml to point to a different file.
 env:
-# - ARGS=""
-# - ARGS="--resolver lts-5"
-# - ARGS="--resolver lts-6"
 - ARGS="--resolver lts-7"
 - ARGS="--resolver lts-8"
-- ARGS="--resolver lts-9"
+- ARGS="--resolver lts-9.21" # 8.0.2
+- ARGS="--resolver lts-12.14" # 8.4.3
+- ARGS="--resolver lts-12.26" # 8.4.4
 - ARGS="--resolver lts"
 - ARGS="--resolver nightly"
 

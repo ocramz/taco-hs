@@ -12,12 +12,6 @@ This module contains types and construction/access functions for tensor dimensio
 Note : no rank or dimensionality information is known at compile time, that is, size mismatch errors will have to be raised at runtime.
 -}
 module Data.Dim (
-  -- * Variance annotation
-  --   Variance(..), V(..), co, contra
-  -- -- , coIx, contraIx
-  -- -- -- ** Convenience constructors
-  -- -- -- , mkVarVector, mkVarCoVector, mkVarMatrix    
-  -- , empty, insert, rekey
   -- * Dimension metadata  
     DimE(..), dimE, denseDimE, sparseDimE
   , Dd(..), Sd(..)
