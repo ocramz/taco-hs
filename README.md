@@ -2,7 +2,7 @@
 
 Tensor Algebra COmpiler
 
-[![Hackage](https://img.shields.io/hackage/v/taco.svg)](https://hackage.haskell.org/package/taco)  [![Build Status](https://travis-ci.org/ocramz/taco.png)](https://travis-ci.org/ocramz/taco)
+[![Hackage](https://img.shields.io/hackage/v/taco.svg)](https://hackage.haskell.org/package/taco)  [![Build Status](https://travis-ci.org/ocramz/taco-hs.png)](https://travis-ci.org/ocramz/taco-hs)
 [![taco](http://stackage.org/package/taco/badge/lts)](http://stackage.org/lts/package/taco)
 [![taco](http://stackage.org/package/taco/badge/nightly)](http://stackage.org/nightly/package/taco)
 
@@ -15,6 +15,6 @@ This library is loosely inspired by [1] but follows an independent design.
 
 ## References
 
-[1] F. Kjolstad et al., Proc. ACM Program. Lang., Vol.1, OOPSLA, Article 77, October 2017
+[1] F. Kjolstad et al., Proc. ACM Program. Lang., Vol.1, OOPSLA, Article 77, October 2017 (pdf : https://fredrikbk.com/publications/taco.pdf )
 
 [2] G. B. Arfken, H. J. Weber, Mathematical methods for physicists, 6th ed.
