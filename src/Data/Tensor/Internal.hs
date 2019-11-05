@@ -3,6 +3,7 @@ module Data.Tensor.Internal
   --   csPtrV
   -- -- , compressCOO
   -- )
+  (module TIV)
   where
 
 -- import Control.Monad.Primitive
@@ -11,4 +12,4 @@ module Data.Tensor.Internal
 -- import qualified Data.Dim as D
 -- import qualified Data.Variance as DV
 -- import Data.Shape.Types
-import Data.Tensor.Internal.Vector
+import Data.Tensor.Internal.Vector as TIV

@@ -10,7 +10,11 @@ Portability : POSIX
 
 Index sorting and compression routines for operating on sparse tensors backed by dense vectors
 -}
-module Data.Tensor.Internal.Vector (ptrV, sortOnIx) where
+module Data.Tensor.Internal.Vector (
+  ptrV, sortOnIx
+  -- * Internal
+  , csPtrV
+  ) where
 
 -- import Data.Int (Int32)
 -- import Data.Foldable (foldl')
@@ -111,9 +115,9 @@ ptrV j = csPtrV (ixCOO j)
 -- E.g.:
 -- > csPtrV 3 (V.fromList [0,0,1,2])
 -- [0,2,3,4]
-csPtrV :: (r -> Ix)  -- ^ indexing function
-       -> Ix         
-       -> V.Vector r
+csPtrV :: (r -> Ix)  -- ^ Indexing function
+       -> Ix         -- ^ Dimensionality
+       -> V.Vector r -- ^ /Sorted/ vector of elements 
        -> V.Vector Ix
 csPtrV ixf n xs = V.create createf where
   createf :: ST s (VM.MVector s Ix)

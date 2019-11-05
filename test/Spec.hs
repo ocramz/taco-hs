@@ -6,13 +6,13 @@ import Test.QuickCheck
 import qualified Data.Vector as V
 
 -- import Data.Tensor
-import Data.Tensor.Internal
+import Data.Tensor.Internal (csPtrV)
 
 
 main :: IO ()
 main = hspec $ do
   describe "Data.Tensor.Internal" $ do
-    it "csPtrV : computes the pointer vector of a sorted vector of integers" $ 
+    it "ptrV : computes the pointer vector of a sorted vector of integers" $ 
       csPtrV id 3 (V.fromList [0,0,1,2]) `shouldBe` V.fromList [0,2,3,4]
 
 
