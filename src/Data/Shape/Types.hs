@@ -65,8 +65,9 @@ compareIxCOO j = comparing (ixCOO j)
 
 -- | A nonzero element in coordinate form
 data Nz a = Nz {
-    nzIxs :: !(NE.NonEmpty Ix)
-  , nzEl :: a } deriving (Eq, Show)
+    nzIxs :: !(NE.NonEmpty Ix)  -- ^ Element coordinates
+  , nzEl :: a   -- ^ Value
+  } deriving (Eq, Show)
 
 -- | Construct a 'Nz' element from a list of coordinates and a value
 nz :: [Ix] -> a -> Nz a

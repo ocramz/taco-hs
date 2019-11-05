@@ -1,7 +1,7 @@
 {-# language LambdaCase, DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
 {-|
 Module      : Data.Dim
-Description : Dimension data
+Description : Tensor dimension metadata
 Copyright   : (c) Marco Zocca, 2018
 License     : GPL-3
 Maintainer  : ocramz fripost org

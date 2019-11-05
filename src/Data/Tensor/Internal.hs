@@ -1,8 +1,8 @@
 module Data.Tensor.Internal
-  (
-    csPtrV
-  -- , compressCOO
-  )
+  -- (
+  --   csPtrV
+  -- -- , compressCOO
+  -- )
   where
 
 -- import Control.Monad.Primitive

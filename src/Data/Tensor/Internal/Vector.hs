@@ -1,5 +1,16 @@
 {-# language TypeFamilies, FlexibleContexts, LambdaCase #-}
-module Data.Tensor.Internal.Vector where
+{-|
+Module      : Data.Tensor.Internal.Vector
+Description : Internal operations for operating on sparse tensors backed by dense vectors
+Copyright   : (c) Marco Zocca, 2018
+License     : GPL-3
+Maintainer  : ocramz fripost org
+Stability   : experimental
+Portability : POSIX
+
+Index sorting and compression routines for operating on sparse tensors backed by dense vectors
+-}
+module Data.Tensor.Internal.Vector (ptrV, sortOnIx) where
 
 -- import Data.Int (Int32)
 -- import Data.Foldable (foldl')
@@ -77,17 +88,21 @@ v1 = V.fromList [
 
 -}
 
+-- | Sort a vector of COOrdinate-encoded tensor elements along a given index
 sortOnIx :: (PrimMonad m, COO coo) =>
-            V.Vector coo -> I -> m (V.Vector coo)
+            V.Vector coo  -- ^ vector of tensor entries in COOrdinate format
+         -> I             -- ^ tensor index to sort on
+         -> m (V.Vector coo)
 sortOnIx v j = do
   vm <- V.thaw v
   VSM.sortBy (compareIxCOO j) vm
   V.freeze vm
 
+-- | @pv = ptrV ix n vcoo@ computes the pointer vector @pv@ at a given index @ix@ along a dimension of given dimensionality @n@, from a vector of COOrdinate-encoded tensor elements @vcoo@
 ptrV :: COO coo =>
         I   -- ^ Index 
      -> Ix     -- ^ Dimensionality 
-     -> V.Vector coo
+     -> V.Vector coo -- ^ vector of tensor entries in COOrdinate format
      -> V.Vector Ix
 ptrV j = csPtrV (ixCOO j)
   
@@ -96,7 +111,10 @@ ptrV j = csPtrV (ixCOO j)
 -- E.g.:
 -- > csPtrV 3 (V.fromList [0,0,1,2])
 -- [0,2,3,4]
-csPtrV :: (r -> Ix) -> Ix -> V.Vector r -> V.Vector Ix
+csPtrV :: (r -> Ix)  -- ^ indexing function
+       -> Ix         
+       -> V.Vector r
+       -> V.Vector Ix
 csPtrV ixf n xs = V.create createf where
   createf :: ST s (VM.MVector s Ix)
   createf = do
