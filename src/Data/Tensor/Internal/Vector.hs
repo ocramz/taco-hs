@@ -51,11 +51,11 @@ import Data.Tensor.Internal.Shape.Types
 --   -> V.Vector r -- ^ Vector of tensor NZ elements in coordinate encoding.
 --   -> m (V.Vector (COOEl r), DV.Var (D.DimE V.Vector Ix))
 
--- compressCOO :: (Foldable t, COO r) =>
---                t (I, Ix, Bool, Bool)  -- ^ (Index, size, dense?, covariant?)
-            -- -> V.Vector r
-            -- -> (V.Vector (COOEl r), DV.Variance V.Vector Ix)
-compressCOO ixs v0 = do
+compressCOO :: (Foldable t, COO r) =>
+               t (I, Ix, Bool, Bool)  -- ^ (Index, size, dense?, covariant?)
+            -> V.Vector r
+            -> (V.Vector (COOEl r), DV.Variance V.Vector Ix)
+compressCOO ixs v0 = runST $ do
   (vFinal, se) <- foldlM go (v0, DV.empty) ixs
   pure (cooElem <$> vFinal, DV.Variance se)
   where
@@ -83,17 +83,10 @@ v1 = V.fromList [
   , nz [2,3] 7
                 ]
 
-{- test data :
+{- CSR test :
 
-v1 = V.fromList [
-    nz [0,0] 6
-  , nz [2,0] 5
-  , nz [0,2] 9
-  , nz [0,3] 8
-  , nz [2,3] 7  ]
-
-λ> compressCOO [(0,3,False,True), (1,4,False,False)] v1
-([6,5,9,8,7],Var {unVar = fromList [(Co 0,DimE {unDimE = Right (Sd {sPtr = [0,0,0], sIdx = [0,0,0,2,2], sDim = 3})}),(Contra 1,DimE {unDimE = Right (Sd {sPtr = [0,0,0,0], sIdx = [0,0,2,3,3], sDim = 4})})]})
+λ> compressCOO [(0,3,True,True), (1,4,False,False)] v1
+([6,5,9,8,7],Var [(Co 0,[Left D : dim 3]),(Contra 1,[Right S : sPtr [0,2,2,3,5] , sIdx [0,0,2,3,3] , dim 4])])
 
 -}
 

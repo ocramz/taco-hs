@@ -32,7 +32,9 @@ Tensor product shorthand (Einstein notation) prescribes that only pairs of tenso
 -- | Tensor dimensions can be either dense or sparse
 newtype DimE v i = DimE {
   unDimE :: Either (Dd i) (Sd v i)
-  } deriving (Eq, Show)
+  } deriving (Eq)
+instance (Show i, Show (v i)) => Show (DimE v i) where
+  show (DimE de) = show de
 
 dimE :: DimE v i -> i
 dimE (DimE ei) = either dDim sDim ei
@@ -55,7 +57,9 @@ sparseDimE sv ixv n = DimE (Right (Sd sv ixv n))
 newtype Dd i = Dd {
    -- | Dimensionality
     dDim :: i
-  } deriving (Eq, Show)
+  } deriving (Eq)
+instance Show i => Show (Dd i) where
+  show (Dd di) = unwords ["D :", "dim", show di]
 
 -- | To define a /sparse/ dimension we need a cumulative array, an index array and a dimensionality parameter
 data Sd v i = Sd {
@@ -65,7 +69,9 @@ data Sd v i = Sd {
     , sIdx :: v i
       -- | Dimensionality 
     , sDim :: i
-    } deriving (Eq, Show)
+    } deriving (Eq)
+instance (Show (v i), Show i) => Show (Sd v i) where
+  show (Sd sptr sidx d) = unwords ["S :", "sPtr", show sptr, ", sIdx", show sidx, ", dim", show d]
 
 -- instance Show i => Show (Dd i) where
 --   show (Dd n) = unwords ["D", show n]

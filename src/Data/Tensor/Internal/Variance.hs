@@ -21,7 +21,9 @@ import Data.Tensor.Internal.Shape.Types
 
 
 -- | A tensor variance annotation using 'DimE' as metadata
-newtype Variance v i = Variance { unVariance :: Var (DimE v i) } deriving (Eq, Show)
+newtype Variance v i = Variance { unVariance :: Var (DimE v i) } deriving (Eq)
+instance (Show (v i), Show i) => Show (Variance v i) where
+  show (Variance va) = show va
 
 -- instance Integral i => TShape (Variance v i) where
 --     tdim = getTDim 
@@ -30,7 +32,9 @@ newtype Variance v i = Variance { unVariance :: Var (DimE v i) } deriving (Eq, S
 
 
 -- | A tensor variance annotation can be encoded by a Map that is keyed by 'V's (i.e. each index can be either co- or contravariant)
-newtype Var a = Var { unVar :: M.Map V [a] } deriving (Eq, Show, Functor, Foldable, Traversable)
+newtype Var a = Var { unVar :: M.Map V [a] } deriving (Eq, Functor, Foldable, Traversable)
+instance Show a => Show (Var a) where
+  show (Var mv) = unwords ["Var", show $ M.toList mv]
 
 -- fromList :: [(V, a)] -> Var a
 -- fromList = Var . M.fromList
