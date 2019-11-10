@@ -28,7 +28,7 @@ import qualified Data.Vector.Generic.Mutable as VGM
 import qualified Data.Vector.Mutable as VM
 -- import qualified Data.IntMap as IM
 import Control.Monad.Primitive
-import Control.Monad.ST
+import Control.Monad.ST (ST, runST)
 -- import Data.Function (on)
 
 import Data.Ord (comparing)
@@ -51,21 +51,25 @@ import Data.Tensor.Internal.Shape.Types
 --   -> V.Vector r -- ^ Vector of tensor NZ elements in coordinate encoding.
 --   -> m (V.Vector (COOEl r), DV.Var (D.DimE V.Vector Ix))
 
--- compressCOO ixs v0 = do
---   (vFinal, se) <- foldlM go (v0, DV.empty) ixs
---   pure (cooElem <$> vFinal, se)
---   where
---     go (v, se) (i, n, dense, covar) = do
---       v' <- sortOnIx v i
---       if not dense
---         then do 
---           let vp = ptrV i n v'
---               vi = ixCOO i <$> v'
---               sdim = D.sparseDimE vp vi n
---           pure (v', DV.insertWhen covar i sdim se)
---         else do
---           let ddim = D.denseDimE n
---           pure (v', DV.insertWhen covar i ddim se)
+compressCOO :: (Foldable t, COO r) =>
+               t (I, Ix, Bool, Bool)  -- ^ (Index, size, dense?, covariant?)
+            -> V.Vector r
+            -> (V.Vector (COOEl r), DV.Variance V.Vector Ix)
+compressCOO ixs v0 = runST $ do
+  (vFinal, se) <- foldlM go (v0, DV.empty) ixs
+  pure (cooElem <$> vFinal, DV.Variance se)
+  where
+    go (v, se) (i, n, dense, covar) = do
+      v' <- sortOnIx v i
+      if not dense
+        then do 
+          let vp = ptrV i n v'
+              vi = ixCOO i <$> v'
+              sdim = D.sparseDimE vp vi n
+          pure (v', DV.consVarWhen covar i sdim se)
+        else do
+          let ddim = D.denseDimE n
+          pure (v', DV.consVarWhen covar i ddim se)
 
 
 

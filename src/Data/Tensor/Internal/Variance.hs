@@ -24,14 +24,6 @@ newtype Variance v i = Variance { unVariance :: Var (DimE v i) } deriving (Eq, S
 -- instance Integral i => TShape (Variance v i) where
 --     tdim = getTDim 
 
--- -- -- | Computes the index dimensionalities for the (covariant, contravariant) indices
--- -- getTDim :: (Integral i, Num b) => Variance v i -> ([b], [b])
--- getTDim vari = both (map (fromIntegral . dimE) . F.toList) $ M.partitionWithKey f mm
---   where
---   mm = unVar $ unVariance vari
---   f k _ = case k of
---     Co _ -> True
---     _ -> False
 
 
 
@@ -40,6 +32,14 @@ newtype Var a = Var { unVar :: M.Map V [a] } deriving (Eq, Show, Functor, Foldab
 
 -- fromList :: [(V, a)] -> Var a
 -- fromList = Var . M.fromList
+
+consVar :: V -> a -> Var a -> Var a
+consVar k v (Var mm) = Var $ M.insertWith (<>) k [v] mm 
+
+consVarWhen :: Bool -> I -> a -> Var a -> Var a
+consVarWhen flag ki v mm = consVar k v mm where
+  k | flag = Co ki
+    | otherwise = Contra ki
 
 insert :: V -> [a] -> Var a -> Var a
 insert k v (Var mm) = Var $ M.insert k v mm
