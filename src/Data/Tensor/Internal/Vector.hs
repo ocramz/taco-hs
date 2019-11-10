@@ -35,10 +35,10 @@ import Data.Ord (comparing)
 -- import qualified Data.List.NonEmpty as NE
 -- import Prelude hiding ( (!!), length )
 -- import Control.Parallel.Strategies (using, rpar, parTraversable)
-import qualified Data.Dim as D
-import qualified Data.Variance as DV
+import qualified Data.Tensor.Internal.Dim as D
+import qualified Data.Tensor.Internal.Variance as DV
 
-import Data.Shape.Types
+import Data.Tensor.Internal.Shape.Types
 
 -- | A @Vector (Nz i a)@ contains the coordinate representation of the nonzero entries in a tensor.
 --

@@ -48,7 +48,7 @@ import qualified Data.Map as M
 import "exceptions" Control.Monad.Catch (MonadThrow(..), throwM)
 import Control.Exception
 import Data.Tensor.Exception
-import Data.Shape.Types
+import Data.Tensor.Internal.Shape.Types
 -- import Data.Shape (
 --   Sh(..)
 --   , mkSh
@@ -59,7 +59,7 @@ import Data.Shape.Types
 --   , rank
 --   , dim
 --   , Z, (:#), (:.))
-import Data.Dim
+import Data.Tensor.Internal.Dim
 
 -- -- | Container type, element type
 -- data Tensor v e = T {

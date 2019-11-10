@@ -1,6 +1,7 @@
 {-# language TypeOperators, TypeFamilies #-}
-module Data.Shape.Types (
-  Z, (:#), (:.), Shape(..), TShape(..), trank, I, Ix
+module Data.Tensor.Internal.Shape.Types (
+  -- Z, (:#), (:.),
+  Shape(..), TShape(..), trank, I, Ix
   , COO(..), compareIxCOO, Nz(..), nz
                         ) where
 
@@ -10,19 +11,15 @@ import Data.Ord
 
 -- import Control.Arrow 
 
-data Z
-data sh :# e -- dense
-data sh :. e -- sparse
 
-
--- | A class for data that have a shape.
+-- | Properties of operands that have a shape.
 class Shape t where
   -- type ShapeT t :: *
   -- shape :: t -> ShapeT t
   rank :: t -> Int
   dim :: t -> [Int]
 
-
+-- | Properties of tensors 
 class TShape t where
   -- | Tensor dimensions: (covariant, contravariant)
   tdim :: t -> ([Int], [Int])

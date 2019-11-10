@@ -1,5 +1,5 @@
 {-# language DeriveFunctor, DeriveFoldable, DeriveTraversable, LambdaCase #-}
-module Data.Variance
+module Data.Tensor.Internal.Variance
   -- (
   -- I,
   -- V(..),
@@ -14,8 +14,8 @@ import qualified Data.Map.Strict as M
 
 import Control.Arrow (Arrow(..), (***))
 
-import Data.Dim
-import Data.Shape.Types
+import Data.Tensor.Internal.Dim
+import Data.Tensor.Internal.Shape.Types
 
 
 -- | A tensor variance annotation using 'DimE' as metadata

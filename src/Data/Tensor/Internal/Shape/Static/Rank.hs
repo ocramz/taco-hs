@@ -1,6 +1,6 @@
 {-# language GADTs, TypeOperators #-}
 {-# language TypeFamilies #-}
-module Data.Shape.Static.Rank where
+module Data.Tensor.Internal.Shape.Static.Rank where
 
 import Data.Monoid
 import Data.Int (Int32)
@@ -10,10 +10,13 @@ import Data.Int (Int32)
 import qualified Data.Vector.Unboxed as VU
 import           GHC.TypeLits (Nat)
 
-import qualified Data.Dim as Dim
-import Data.Shape.Types   
+import qualified Data.Tensor.Internal.Dim as Dim
+-- import Data.Shape.Types   
 
 
+data Z
+data sh :# e -- dense
+data sh :. e -- sparse
 
 -- | A statically-typed tensor shape parameter that supports both sparse and dense dimensions.
 -- Dimensions are indexed with 'Int32' indices, which should be enough for most applications.

@@ -11,7 +11,7 @@ Portability : POSIX
 This module contains types and construction/access functions for tensor dimension metadata which are declared to be polymorphic in the container type (i.e. could be lists, vectors etc.).
 Note : no rank or dimensionality information is known at compile time, that is, size mismatch errors will have to be raised at runtime.
 -}
-module Data.Dim (
+module Data.Tensor.Internal.Dim (
   -- * Dimension metadata  
     DimE(..), dimE, denseDimE, sparseDimE
   , Dd(..), Sd(..)
