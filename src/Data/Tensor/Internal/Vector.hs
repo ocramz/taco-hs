@@ -51,11 +51,11 @@ import Data.Tensor.Internal.Shape.Types
 --   -> V.Vector r -- ^ Vector of tensor NZ elements in coordinate encoding.
 --   -> m (V.Vector (COOEl r), DV.Var (D.DimE V.Vector Ix))
 
-compressCOO :: (Foldable t, COO r) =>
-               t (I, Ix, Bool, Bool)  -- ^ (Index, size, dense?, covariant?)
-            -> V.Vector r
-            -> (V.Vector (COOEl r), DV.Variance V.Vector Ix)
-compressCOO ixs v0 = runST $ do
+-- compressCOO :: (Foldable t, COO r) =>
+--                t (I, Ix, Bool, Bool)  -- ^ (Index, size, dense?, covariant?)
+            -- -> V.Vector r
+            -- -> (V.Vector (COOEl r), DV.Variance V.Vector Ix)
+compressCOO ixs v0 = do
   (vFinal, se) <- foldlM go (v0, DV.empty) ixs
   pure (cooElem <$> vFinal, DV.Variance se)
   where
@@ -66,6 +66,7 @@ compressCOO ixs v0 = runST $ do
           let vp = ptrV i n v'
               vi = ixCOO i <$> v'
               sdim = D.sparseDimE vp vi n
+          -- putStrLn $ show vi             
           pure (v', DV.consVarWhen covar i sdim se)
         else do
           let ddim = D.denseDimE n
