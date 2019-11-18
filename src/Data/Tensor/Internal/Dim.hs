@@ -13,8 +13,11 @@ Note : no rank or dimensionality information is known at compile time, that is, 
 -}
 module Data.Tensor.Internal.Dim (
   -- * Dimension metadata  
-    DimE(..), dimE, denseDimE, sparseDimE
-  , Dd(..), Sd(..)
+    DimE(..), dimE
+    -- ** Dense dimensions
+  , Dd(..), denseDimE
+  -- ** Sparse dimensions
+  , Sd(..) , sparseDimE
   ) where
 
 -- import Control.Applicative hiding (empty)
@@ -29,13 +32,16 @@ import qualified Data.Map.Strict as M
 Tensor product shorthand (Einstein notation) prescribes that only pairs of tensors with common indices can be multiplied. In particular, in the index pair one index should be variant and the other contravariant.
 -}
 
--- | Tensor dimensions can be either dense or sparse
+-- | Tensor indices can be either dense or sparse
+--
+-- "Dim" stands for "dimension", to draw an analogy with n-dimensional grids 
 newtype DimE v i = DimE {
   unDimE :: Either (Dd i) (Sd v i)
   } deriving (Eq)
 instance (Show i, Show (v i)) => Show (DimE v i) where
   show (DimE de) = show de
 
+-- | Dimensionality ("size") of the index
 dimE :: DimE v i -> i
 dimE (DimE ei) = either dDim sDim ei
 

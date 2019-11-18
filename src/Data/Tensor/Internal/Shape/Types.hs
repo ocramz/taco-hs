@@ -2,7 +2,7 @@
 module Data.Tensor.Internal.Shape.Types (
   -- Z, (:#), (:.),
   Shape(..), TShape(..), trank, I, Ix
-  , COO(..), compareIxCOO, Nz(..), nz
+  , COO(..), compareIxCOO, Nz, nz
                         ) where
 
 import Data.Int (Int32)
@@ -60,7 +60,7 @@ compareIxCOO :: COO r => I -> r -> r -> Ordering
 compareIxCOO j = comparing (ixCOO j)  
 
 
--- | A nonzero element in coordinate form
+-- | A nonzero element of a sparse tensor in coordinate form
 data Nz a = Nz {
     nzIxs :: !(NE.NonEmpty Ix)  -- ^ Element coordinates
   , nzEl :: a   -- ^ Value
